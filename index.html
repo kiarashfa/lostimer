@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Swan Station — Push The Button</title>
+  <meta name="description" content="DHARMA Initiative Swan Station. Enter 4 8 15 16 23 42 every 108 minutes.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- FAILURE OVERLAY -->
+<div id="failure-overlay">
+  <div class="failure-text">⚠ SYSTEM FAILURE ⚠</div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal-box">
+    <div class="modal-title">⚙ SET TIMER</div>
+    <label class="modal-label">DURATION (minutes, 1–9999):</label>
+    <input type="number" class="modal-input" id="settings-minutes" min="1" max="9999" value="108">
+    <p class="modal-sub">DEFAULT: 108 min (DHARMA protocol)<br>Enter any duration for custom use.</p>
+    <div class="modal-buttons">
+      <button class="btn-modal cancel" id="btn-settings-cancel">CANCEL</button>
+      <button class="btn-modal" id="btn-settings-apply">SET TIMER</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATION MODAL -->
+<div class="modal-overlay" id="station-modal">
+  <div class="modal-box station-modal-box">
+    <div style="font-size:2.2rem;margin-bottom:10px;opacity:0.35;">☯</div>
+    <h3 id="station-modal-title">STATION</h3>
+    <p id="station-modal-desc"></p>
+    <br>
+    <button class="btn-modal" id="station-modal-close">ACKNOWLEDGED</button>
+  </div>
+</div>
+
+<!-- FULLSCREEN GAME MENU OVERLAY -->
+<div id="menu-overlay">
+  <div class="menu-box">
+    <div class="menu-overlay-title">— DHARMA INITIATIVE —</div>
+
+    <!-- 6 stations (2×3 grid — Swan is this page) -->
+    <div class="menu-stations-grid">
+      <button class="menu-station-btn" data-station="Flame">
+        <span class="menu-station-icon">🔥</span><span>THE FLAME</span>
+      </button>
+      <button class="menu-station-btn" data-station="Hydra">
+        <span class="menu-station-icon">⚗</span><span>THE HYDRA</span>
+      </button>
+      <button class="menu-station-btn" data-station="Arrow">
+        <span class="menu-station-icon">➶</span><span>THE ARROW</span>
+      </button>
+      <button class="menu-station-btn" data-station="Pearl">
+        <span class="menu-station-icon">◉</span><span>THE PEARL</span>
+      </button>
+      <button class="menu-station-btn" data-station="Looking Glass">
+        <span class="menu-station-icon">⟁</span><span>LOOKING GLASS</span>
+      </button>
+      <button class="menu-station-btn" data-station="Orchid">
+        <span class="menu-station-icon">✾</span><span>THE ORCHID</span>
+      </button>
+    </div>
+
+    <!-- Links row -->
+    <div class="menu-links">
+      <div class="menu-link-group">
+        <div class="menu-link-group-title">LOST LINKS</div>
+        <a href="https://www.reddit.com/r/LOST/" target="_blank" rel="noopener">Reddit /r/LOST</a>
+        <a href="https://lostpedia.fandom.com/" target="_blank" rel="noopener">Lostpedia</a>
+        <a href="https://en.wikipedia.org/wiki/Lost_(TV_series)" target="_blank" rel="noopener">Wikipedia</a>
+      </div>
+      <div class="menu-link-group">
+        <div class="menu-link-group-title">SUPPORT</div>
+        <a href="https://github.com/kiarashfa" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://kiarashfa.github.io/website/" target="_blank" rel="noopener">Personal Site</a>
+        <a href="mailto:KiarashFa@gmail.com">KiarashFa@gmail.com</a>
+      </div>
+      <div class="menu-link-group">
+        <div class="menu-link-group-title">ABOUT</div>
+        <button data-nav="about" class="menu-nav-btn">About</button>
+        <button data-nav="faq"   class="menu-nav-btn">FAQ</button>
+      </div>
+    </div>
+
+    <button class="menu-close-btn" id="menu-close">[ CLOSE ]</button>
+  </div>
+</div>
+
+<!-- SOUND PROMPT -->
+<div id="sound-prompt">🔊 Click anywhere to enable sound</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-left"></div>
+
+    <div class="top-bar-center">
+      <svg class="dharma-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="60,4 99,24 116,60 99,96 60,116 21,96 4,60 21,24" fill="#fff" stroke="#000" stroke-width="2"/>
+        <circle cx="60" cy="60" r="42" fill="#000"/>
+        <circle cx="60" cy="60" r="38" fill="#fff"/>
+        <circle cx="60" cy="60" r="30" fill="#000"/>
+        <g fill="#fff">
+          <ellipse cx="60" cy="65" rx="14" ry="10"/>
+          <ellipse cx="60" cy="55" rx="7" ry="10"/>
+          <path d="M54,55 Q50,42 58,36 Q64,30 66,38 Q62,44 60,55 Z" fill="#fff"/>
+          <circle cx="65" cy="34" r="5" fill="#fff"/>
+          <path d="M68,33 L74,32 L70,36 Z" fill="#e8b000"/>
+          <circle cx="67" cy="32" r="1" fill="#000"/>
+        </g>
+        <text x="60" y="78" text-anchor="middle" font-family="serif" font-size="9" fill="#fff" font-weight="bold">DHARMA</text>
+        <g stroke="#333" stroke-width="1.5" fill="none">
+          <line x1="60" y1="18" x2="60" y2="10"/><line x1="60" y1="102" x2="60" y2="110"/>
+          <line x1="18" y1="60" x2="10" y2="60"/><line x1="102" y1="60" x2="110" y2="60"/>
+        </g>
+      </svg>
+      <div class="site-title-block">
+        <span class="site-title">THE SWAN STATION</span>
+        <span class="site-status">
+          <span class="dot"></span>STATUS: ONLINE &nbsp;·&nbsp; PROTOCOL: ACTIVE
+        </span>
+      </div>
+    </div>
+
+    <div class="top-bar-right">
+
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+
+    <!-- CENTER COLUMN -->
+    <main class="center-col">
+
+      <!-- METAL FRAME COUNTDOWN TIMER -->
+      <div class="timer-housing">
+        <span class="timer-bolt-bl"></span>
+        <span class="timer-bolt-br"></span>
+        <div class="timer-label">DHARMA INITIATIVE · SWAN STATION</div>
+
+        <div class="flip-clock" id="flip-clock">
+          <div class="flip-group flip-group-minutes">
+            <div class="flip-digit" id="fd-m1"><span class="digit">1</span></div>
+            <div class="flip-digit" id="fd-m2"><span class="digit">0</span></div>
+            <div class="flip-digit" id="fd-m3"><span class="digit">8</span></div>
+          </div>
+          <div class="timer-separator"></div>
+          <div class="flip-group flip-group-seconds">
+            <div class="flip-digit" id="fd-s1"><span class="digit">0</span></div>
+            <div class="flip-digit" id="fd-s2"><span class="digit">0</span></div>
+          </div>
+        </div>
+
+        <div class="timer-controls">
+          <span class="timer-info" id="timer-info">108:00 DEFAULT</span>
+          <button class="btn-icon" id="btn-settings" title="Set custom timer">⚙</button>
+          <button class="btn-icon" id="btn-menu" title="Menu" style="font-size:1rem;">≡</button>
+        </div>
+      </div>
+
+      <!-- CRT MONITOR -->
+      <div class="monitor-wrap">
+        <div class="monitor-outer">
+          <div class="monitor-inner-bezel">
+            <div class="monitor-screen" id="monitor-screen">
+              <div class="screen-scroll" id="screen-scroll">
+                <div class="screen-content" id="screen-content">
+                  <!-- Filled by JS -->
+                </div>
+                <!-- Input always lives here, below content -->
+                <div id="screen-input-area"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIRTUAL KEYBOARD -->
+      <div class="keyboard-wrap" id="keyboard-wrap">
+        <div class="keyboard-chassis">
+          <div id="virtual-keyboard"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <span style="text-align:left;">
+      <a href="https://lostpedia.fandom.com/wiki/The_Swan" target="_blank" rel="noopener">Lostpedia</a>
+      &nbsp;·&nbsp;
+      <a href="https://en.wikipedia.org/wiki/Lost_(TV_series)" target="_blank" rel="noopener">Wikipedia</a>
+    </span>
+    <span id="footer-time" style="text-align:center;">—</span>
+    <span style="text-align:right;">Tribute to ABC's LOST (2004–2010) &nbsp;·&nbsp; Namaste.</span>
+  </footer>
+
+</div>
+
+
+<script src="script.js"></script>
+</body>
+</html>
