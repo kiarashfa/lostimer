@@ -773,7 +773,7 @@ footer a:hover { color: var(--green); }
 
 @media (max-width: 400px) {
   :root { --tile-w: 36px; --tile-h: 54px; --tile-fs: 3rem; }
-  .key { min-width: 24px; }
+  .key { min-width: calc((100vw - 30px) / 20); }
   .key-w-sp { min-width: 120px; }
   .key-w-execute { min-width: 56px; }
   .key-w-space   { min-width: 150px; }
