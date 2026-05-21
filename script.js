@@ -28,6 +28,16 @@
   // ── DIGIT STATE (alt-style: track current char per tile) ──
   const flapState = { m1:'1', m2:'0', m3:'8', s1:'0', s2:'0' };
 
+  // ── CHAT STATE (Michael/Walt "hello" sequence) ──
+  let chatActive = false;
+  let chatStep   = 0;   // 0 = waiting for "this is X" reply, 1 = "dad?", 2 = "are you alone?", 3 = final any-reply
+  let chatTimeoutId = null;
+
+  // ── INVALID INPUT TRACKING ──
+  // Increments on every unknown command / bad code. Reset on any valid input.
+  // When it reaches 2, we show the lockout warning screen.
+  let invalidAttempts = 0;
+
   // ── AUDIO (MP3 samples) ──────────────────────────────────────────────
   // All sample files live in assets/. Each gets a pool of Audio objects so
   // rapid repeated playback (e.g. fast typing) doesn't get cut off.
@@ -229,6 +239,11 @@
 
   function resetTimer(secs) {
     clearInterval(timerInterval); timerInterval = null;
+    // Cancel any in-flight failure-end stream
+    if (typeof failureStreamTimeouts !== 'undefined') {
+      failureStreamTimeouts.forEach(id => clearTimeout(id));
+      failureStreamTimeouts = [];
+    }
     stopAlarm(); isAlarm = false; isFailure = false;
     totalSeconds = secs !== undefined ? secs : totalSeconds;
     remaining = totalSeconds;
@@ -272,24 +287,34 @@
 <span class="screen-line">Every 108 minutes the button must be pushed. Alarm sounds at 4 minutes. You will have 4 minutes to enter code.</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line text-dim">Type a command below, or use ≡ menu.</span>
-<span class="screen-line text-dim">Commands: home · comm · instructions · orientation · faq</span>
+<span class="screen-line text-dim">home · communication · instructions · orientation · faq</span>
 <span class="screen-line"> </span>`,
 
     communication: () => `
-<span class="screen-line text-amber">// COMMUNICATION LOG — INTERNAL //</span>
+<span class="screen-line text-amber">// COMMUNICATION LOG — STATION 3 //</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line text-dim">─────────────────────────────────────</span>
 <span class="screen-line"> </span>
-<span class="screen-line"><span class="text-dim">[DAY 001]</span> Kelvin: Button pushed. Namaste.</span>
-<span class="screen-line"><span class="text-dim">[DAY 003]</span> Desmond: Who else is down here?</span>
-<span class="screen-line"><span class="text-dim">[DAY 047]</span> Kelvin: Don't ask questions.</span>
-<span class="screen-line"><span class="text-dim">[DAY 102]</span> Desmond: 4 8 15 16 23 42. Done.</span>
-<span class="screen-line"><span class="text-dim">[DAY 440]</span> [USER DISCONNECT]</span>
-<span class="screen-line"><span class="text-dim">[DAY 441]</span> Locke: What does it DO?</span>
-<span class="screen-line"><span class="text-dim">[DAY 441]</span> Jack: Nothing. Push it anyway.</span>
-<span class="screen-line"><span class="text-dim">[DAY 511]</span> Desmond: I was wrong about that.</span>
-<span class="screen-line"> </span>
-<span class="screen-line text-dim">─────────────────────────────────────</span>`,
+<span class="screen-line"><span class="text-dim">[DAY 0001]</span> Kelvin: A new partner. Brother, you'll do.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0001]</span> Desmond: Where am I? What is this place?</span>
+<span class="screen-line"><span class="text-dim">[DAY 0001]</span> Kelvin: Don't ask questions. Just push the button.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0014]</span> Desmond: 4 8 15 16 23 42. Execute.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0092]</span> Desmond: What does the button DO, brother?</span>
+<span class="screen-line"><span class="text-dim">[DAY 0092]</span> Kelvin: It saves the world.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0092]</span> Kelvin: That's all you need to know.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0301]</span> Desmond: There's blood on the ceiling.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0301]</span> Desmond: Who was here before?</span>
+<span class="screen-line"><span class="text-dim">[DAY 0301]</span> Kelvin: Radzinsky. He didn't make it. Don't ask.</span>
+<span class="screen-line"><span class="text-dim">[DAY 0824]</span> Desmond: I dreamed of Penny again.</span>
+<span class="screen-line"><span class="text-dim">[DAY 1093]</span> Kelvin: I'll be in the jungle. Push the button.</span>
+<span class="screen-line"><span class="text-dim">[DAY 1094]</span> <span class="text-red">[KELVIN INMAN — DISCONNECTED]</span></span>
+<span class="screen-line"><span class="text-dim">[DAY 1094]</span> <span class="text-red">SYSTEM FAILURE.</span></span>
+<span class="screen-line"><span class="text-dim">[DAY 1094]</span> <span class="text-amber">[ANOMALY DETECTED — 09:16:00]</span></span>
+<span class="screen-line"><span class="text-dim">[DAY 1094]</span> Desmond: I killed them. I killed them all.</span>
+<span class="screen-line"><span class="text-dim">[DAY 1136]</span> Locke: We came through the ceiling. What does it DO?</span>
+<span class="screen-line"><span class="text-dim">[DAY 1136]</span> Jack: Nothing. Push it anyway.</span>
+<span class="screen-line"><span class="text-dim">[DAY 1138]</span> <span class="text-red">[ TRANSMISSION ENDS ]</span></span>
+<span class="screen-line"> </span><span class="screen-line text-dim">─────────────────────────────────────</span>`,
 
     instructions: () => `
 <span class="screen-line text-amber">// STATION PROTOCOL — READ CAREFULLY //</span>
@@ -326,7 +351,7 @@
 <span class="screen-line">A: Click ⚙ near the timer. Any duration in minutes works.</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line text-dim">Q: Terminal commands?</span>
-<span class="screen-line">A: home · comm · instructions · orientation · faq</span>
+<span class="screen-line">A: home · communication · instructions · orientation · faq</span>
 <span class="screen-line">   Type and press EXECUTE or Enter.</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line text-dim">Q: What if I don't push it?</span>
@@ -352,13 +377,28 @@
 <span class="screen-line text-dim">Type <span class="text-amber">faq</span> for full FAQ.</span>
 <span class="screen-line"> </span>`,
 
-    'failure-end': () => `
-<span class="screen-line text-dim">... ... ...</span>
-<span class="screen-line"> </span>
-<span class="screen-line text-red">TIMER EXPIRED.</span>
-<span class="screen-line">The button was not pushed.</span>
-<span class="screen-line"> </span>
-<span class="screen-line text-dim">Use ⚙ to set a new timer, or reload.</span>
+    'failure-end': () => `<div id="failure-end-content"></div>`,
+
+    hello: () => `
+<span class="screen-line text-amber">// INCOMING TRANSMISSION //</span>
+<span class="screen-line text-dim">─────────────────────────────────────</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line"><span class="text-dim">&gt;</span> Hello. Who is this?</span>
+<span class="screen-line"> </span>`,
+
+    lockout: () => `
+<span class="screen-line text-red blink">⚠ WARNING — STATION 3 PROTOCOL ⚠</span>
+<span class="screen-line text-dim">─────────────────────────────────────</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">Do <span class="text-red">NOT</span> attempt to use the computer for anything else other than entering the code. This is its <span class="text-amber">ONLY</span> function.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">The isolation that attends the duties associated with <span class="text-amber">Station 3</span> may tempt you to try and utilise the computer for communication with the outside world.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">This is <span class="text-red">strictly forbidden</span>. Attempting to use the computer in this manner will compromise the integrity of the project and, worse, could lead to <span class="text-red">another incident</span>.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">I repeat — <span class="text-red blink">DO NOT</span> use the computer for anything other than entering the code.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-amber">— DHARMA INITIATIVE</span>
 <span class="screen-line"> </span>`,
   };
 
@@ -375,6 +415,9 @@
   }
 
   function setScreen(key) {
+    // If we are leaving the hello screen, terminate any active chat session.
+    if (chatActive && key !== 'hello') endChat();
+
     activeNav = key;
     const fn = SCREENS[key];
     document.getElementById('screen-content').innerHTML = fn ? fn() : SCREENS.home();
@@ -397,6 +440,12 @@
         setTimeout(() => { if (!v.duration || isNaN(v.duration)) { v.style.display='none'; fb.style.display='block'; } }, 2000);
       }
     }
+
+    // Stream failure-end lines one by one for dramatic effect
+    if (key === 'failure-end') {
+        streamFailureEnd();
+    }
+
     // Update nav active
     document.querySelectorAll('[data-nav]').forEach(el => {
       const li = el.closest('li');
@@ -420,11 +469,12 @@
   // ── CODE / COMMAND INPUT ──
   const COMMANDS = {
     'home': 'home', 'h': 'home',
-    'comm': 'communication', 'communication': 'communication', 'comms': 'communication',
-    'instructions': 'instructions', 'instr': 'instructions', 'i': 'instructions',
+    'communication': 'communication', 'communications': 'communication', 'comms': 'communication',
+    'instructions': 'instructions', 'instr': 'instructions', 'i': 'instructions', 'instruction': 'instructions',
     'orientation': 'orientation', 'orient': 'orientation', 'video': 'orientation', 'o': 'orientation',
-    'faq': 'faq', 'help': 'faq',
+    'faq': 'faq', 'help': 'faq', 'help me': 'faq',
     'about': 'about',
+    'hello': 'hello', 'hi': 'hello',
     'comm': 'communication', 'communication': 'communication', 'comms': 'communication',
   };
 
@@ -436,6 +486,211 @@
     return JSON.stringify(nums) === JSON.stringify(CORRECT_NUMS);
   }
 
+  // ── CHAT HELPERS (Michael/Walt "hello" sequence) ──
+  // Normalize a user reply for matching: lowercase, strip punctuation,
+  // collapse whitespace. Keeps letters, digits, and spaces.
+  function normalizeReply(s) {
+    return (s || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // Append a chat exchange to the screen content. `userText` is what the
+  // user typed; `replyHtml` is the system's response (can contain <br>).
+  function appendChat(userText, replyHtml) {
+    const content = document.getElementById('screen-content');
+    if (!content) return;
+    const userLine = document.createElement('span');
+    userLine.className = 'screen-line';
+    userLine.innerHTML = `<span class="screen-prompt">&gt;:</span> ${escapeHtml(userText)}`;
+    content.appendChild(userLine);
+    if (replyHtml) {
+      const spacer = document.createElement('span');
+      spacer.className = 'screen-line';
+      spacer.innerHTML = '&nbsp;';
+      content.appendChild(spacer);
+      const reply = document.createElement('span');
+      reply.className = 'screen-line';
+      reply.innerHTML = `<span class="text-dim">&gt;</span> ${replyHtml}`;
+      content.appendChild(reply);
+      const spacer2 = document.createElement('span');
+      spacer2.className = 'screen-line';
+      spacer2.innerHTML = '&nbsp;';
+      content.appendChild(spacer2);
+    }
+    // Scroll to bottom
+    const scr = document.getElementById('screen-scroll');
+    if (scr) setTimeout(() => scr.scrollTop = scr.scrollHeight, 30);
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => (
+      { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]
+    ));
+  }
+
+  // Returns true if the normalized reply matches step 0 (introducing a name).
+  // Accepts: "this is X", "this is X who is this", "i am X", "my name is X".
+  // X must be at least one non-empty word.
+  function matchIntroReply(n) {
+    if (!n) return false;
+    // "this is <name>" (optionally followed by anything)
+    if (/^this is [a-z0-9]+/.test(n)) return true;
+    // "i am <name>"
+    if (/^i am [a-z0-9]+/.test(n)) return true;
+    if (/^im [a-z0-9]+/.test(n)) return true;
+    if (/^i m [a-z0-9]+/.test(n)) return true;
+    // "it is <name>"
+    if (/^it is [a-z0-9]+/.test(n)) return true;
+    if (/^it s [a-z0-9]+/.test(n)) return true;
+    // "my name is <name>"
+    if (/^my name is [a-z0-9]+/.test(n)) return true;
+    return false;
+  }
+
+  // Step 1: "Dad?" — accepts yes / yeah / son / walt / "are you ok".
+  function matchDadReply(n) {
+    if (!n) return false;
+    if (n === 'yes' || n === 'yeah') return true;
+    if (n === 'son' || n === 'walt') return true;
+    if (n === 'are you ok' || n === 'are you okay') return true;
+    return false;
+  }
+
+  // Step 2: "Are you alone?" — accepts yes / yeah / sure / yup / "i am",
+  // each optionally followed by more text ("yes son" is fine).
+  function matchAloneReply(n) {
+    if (!n) return false;
+    if (/^(yes|yeah|sure|yup|i am)(\b|$)/.test(n)) return true;
+    return false;
+  }
+
+  // Begin the chat mode. Screen is already set to 'hello'.
+  function startChat() {
+    chatActive = true;
+    chatStep = 0;
+    if (chatTimeoutId) { clearTimeout(chatTimeoutId); chatTimeoutId = null; }
+  }
+
+  function endChat() {
+    chatActive = false;
+    chatStep = 0;
+    if (chatTimeoutId) { clearTimeout(chatTimeoutId); chatTimeoutId = null; }
+  }
+
+  // Handle a user reply while chat is active. Returns true if handled.
+  function handleChatInput(raw) {
+    const n = normalizeReply(raw);
+
+    if (chatStep === 0) {
+      if (matchIntroReply(n)) {
+        appendChat(raw, 'Dad?');
+        chatStep = 1;
+      } else {
+        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>');
+      }
+      return true;
+    }
+
+    if (chatStep === 1) {
+      if (matchDadReply(n)) {
+        appendChat(raw, 'Yes.<br>Are you alone?');
+        chatStep = 2;
+      } else {
+        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>');
+      }
+      return true;
+    }
+
+    if (chatStep === 2) {
+      if (matchAloneReply(n)) {
+        appendChat(raw, "Can't talk long. They are coming back soon...");
+        chatStep = 3;
+      } else {
+        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>');
+      }
+      return true;
+    }
+
+    if (chatStep === 3) {
+      // Any reply triggers the final cut-off line, then auto-returns home.
+      appendChat(raw, '<span class="text-red">You need to com</span>');
+      chatStep = 4;
+      // Disable further chat input until auto-return.
+      chatActive = false;
+      chatTimeoutId = setTimeout(() => {
+        endChat();
+        setScreen('home');
+      }, 5000);
+      return true;
+    }
+
+    return false;
+  }
+
+
+  // Lines for the failure-end sequence. [delayBefore_ms, html]
+  const FAILURE_END_LINES = [
+    [0,    `<span class="screen-line text-dim">... ... ...</span>`],
+    [0,    `<span class="screen-line text-dim">... ... ...</span>`],
+    [0,    `<span class="screen-line text-dim">... ... ...</span>`],
+    [800,  `<span class="screen-line"> </span>`],
+    [400,  `<span class="screen-line text-red">TIMER EXPIRED.</span>`],
+    [500,  `<span class="screen-line">The button was not pushed.</span>`],
+    [1200, `<span class="screen-line"> </span>`],
+    [200,  `<span class="screen-line text-dim">The hieroglyphs lock into place.</span>`],
+    [1100, `<span class="screen-line"> </span>`],
+    [200,  `<span class="screen-line">Beneath the floor... the anomaly stirs.</span>`],
+    [900,  `<span class="screen-line">A hum. Low. Then louder. Then everywhere.</span>`],
+    [1300, `<span class="screen-line"> </span>`],
+    [200,  `<span class="screen-line text-dim">Desmond reaches into a locker with the key.</span>`],
+    [1500, `<span class="screen-line"> </span>`],
+    [400,  `<span class="screen-line text-amber">"I'll see you in another life, brother."</span>`],
+    [1800, `<span class="screen-line"> </span>`],
+    [200,  `<span class="screen-line text-red">[ FAILSAFE ENGAGED ]</span>`],
+    [400,  `<span class="screen-line text-red blink">█ █ █ DISCHARGE █ █ █</span>`],
+    [1400, `<span class="screen-line"> </span>`],
+    [300,  `<span class="screen-line text-dim">The sky turns violet. The island holds its breath.</span>`],
+    [2200, `<span class="screen-line"> </span>`],
+    [0,    `<span class="screen-line">&nbsp;</span>`],
+    [0,    `<span class="screen-line">&nbsp;</span>`],
+    [200,  `<span class="screen-line">You failed!</span>`],
+    [1400, `<span class="screen-line"> </span>`],
+    [300,  `<span class="screen-line text-amber">But the island isn't done with you yet.</span>`],
+    [700,  `<span class="screen-line text-amber">We have to go back.</span>`],
+    [800,  `<span class="screen-line">&nbsp;</span>`],
+    [400,  `<span class="screen-line">Type <span class="text-amber" style="font-weight:bold">reset</span> to try again,</span>`],
+    [200,  `<span class="screen-line text-dim">or type home and use ⚙ to set a new duration</span>`],
+    [200,  `<span class="screen-line"> </span>`],
+  ];
+
+  let failureStreamTimeouts = [];
+
+  function streamFailureEnd() {
+  // Clear any prior pending lines (in case of re-entry)
+    failureStreamTimeouts.forEach(id => clearTimeout(id));
+    failureStreamTimeouts = [];
+
+    const container = document.getElementById('failure-end-content');
+    if (!container) return;
+    container.innerHTML = '';
+
+    let cumulative = 0;
+    FAILURE_END_LINES.forEach(([delay, html]) => {
+      cumulative += delay;
+      const id = setTimeout(() => {
+        // Bail if user has navigated away
+        if (!document.getElementById('failure-end-content')) return;
+        container.insertAdjacentHTML('beforeend', html);
+        const scr = document.getElementById('screen-scroll');
+        if (scr) scr.scrollTop = scr.scrollHeight;
+      }, cumulative);
+      failureStreamTimeouts.push(id);
+    });
+  }
+
   function submitInput() {
     const input = document.getElementById('code-input');
     if (!input) return;
@@ -443,15 +698,56 @@
     if (!val) return;
     const lower = val.toLowerCase();
 
+    // If a chat session is active, route through chat handler.
+    // Exception: allow the user to bail out by typing 'home'.
+    if (chatActive) {
+      if (lower === 'home' || lower === 'h') {
+        input.value = '';
+        endChat();
+        setScreen('home');
+        return;
+      }
+      input.value = '';
+      handleChatInput(val);
+      return;
+    }
+
+    // "reset" command — restart the system using the last-set duration.
+    // Only meaningful after failure, but harmless any other time.
+    if (lower === 'reset' || lower === 'restart') {
+       input.value = '';
+       invalidAttempts = 0;
+       playAccept();
+       resetTimer(totalSeconds);
+      setScreen('home');
+      printResponse('<span class="text-amber">&gt;: SYSTEM RESTARTED. NAMASTE.</span>');
+      return;
+    }
+
     // Check if it's a nav command
     if (COMMANDS[lower]) {
       input.value = '';
-      setScreen(COMMANDS[lower]);
+      invalidAttempts = 0;
+      const target = COMMANDS[lower];
+      setScreen(target);
+      // If switching to hello, kick off the chat sequence.
+      if (target === 'hello') startChat();
       return;
     }
+
     // Check if it's the numbers code
     if (checkCode(val)) {
       input.value = '';
+      // Code is correct, but the processor is only armed in the final 4 min.
+      // Entering early is rejected with a protocol warning (and does NOT
+      // count as an "invalid command" attempt — it's the right code, wrong
+      // time).
+      if (remaining > WARN_AT && !isFailure) {
+        playReject();
+        printResponse('<span class="text-red">&gt;: PROCESSOR DISABLED UNTIL THE LAST 4 MIN.</span>');
+        return;
+      }
+      invalidAttempts = 0;
       playAccept();
       resetTimer();
       printResponse('<span class="text-amber">&gt;: CODE ACCEPTED. TIMER RESET. NAMASTE.</span>');
@@ -462,32 +758,53 @@
       setTimeout(()=>{ scr.style.boxShadow=''; setTimeout(()=>scr.style.transition='',400); }, 650);
     } else {
       input.value = '';
+      invalidAttempts++;
       playReject();
-      printResponse('<span class="text-red">&gt;: UNKNOWN COMMAND OR INVALID CODE.</span>');
+      if (invalidAttempts >= 2) {
+        // Second bad input in a row → show the Station 3 protocol warning.
+        invalidAttempts = 0;
+        setScreen('lockout');
+      } else {
+        printResponse('<span class="text-red">&gt;: UNKNOWN COMMAND OR INVALID CODE.</span>');
+      }
     }
   }
 
   // ── VIRTUAL KEYBOARD ──
+  // Layout modelled on the Apple II+ keyboard from the Swan Station.
+  // `l` = upper (shifted) glyph shown small at top of key.
+  // `s` = main glyph (the unshifted character) shown large.
+  // When only `l` is given, that's the sole label.
   const KB_ROWS = [
-    [{l:'!',s:'1',k:'1'},{l:'@',s:'2',k:'2'},{l:'#',s:'3',k:'3'},{l:'$',s:'4',k:'4'},
+    // Row 1: number/symbol row + RESET on far right (no ESC here — ESC is row 2)
+    [{l:'!',s:'1',k:'1'},{l:'"',s:'2',k:'2'},{l:'#',s:'3',k:'3'},{l:'$',s:'4',k:'4'},
      {l:'%',s:'5',k:'5'},{l:'&',s:'6',k:'6'},{l:"'",s:'7',k:'7'},{l:'(',s:'8',k:'8'},
-     {l:')',s:'9',k:'9'},{l:' ',s:'0',k:'0'},{l:'_',s:'-',k:'-'},{l:'=',s:'=',k:'='},
-     {l:'←',k:'Backspace',c:'key-special key-w-1h'}],
-    [{l:'TAB',k:'Tab',c:'key-special key-w-1h'},
+     {l:')',s:'9',k:'9'},{l:'',s:'0',k:'0'},{l:'*',s:':',k:':'},{l:'',s:'=',k:'='},
+     {l:'RESET',k:'Escape',c:'key-special key-w-1h'}],
+
+    // Row 2: ESC, QWERTYUIOP, @, REPT, RETURN
+    [{l:'ESC',k:'Escape',c:'key-special key-w-1'},
      {l:'Q',k:'q'},{l:'W',k:'w'},{l:'E',k:'e'},{l:'R',k:'r'},{l:'T',k:'t'},
      {l:'Y',k:'y'},{l:'U',k:'u'},{l:'I',k:'i'},{l:'O',k:'o'},{l:'P',k:'p'},
-     {l:'[',k:'['},{l:']',k:']'},{l:'RETURN',k:'Enter',c:'key-special key-w-ret'}],
+     {l:'@',k:'@'},{l:'REPT',k:'Repeat',c:'key-special'},
+     {l:'RETURN',k:'Enter',c:'key-special key-w-1h'}],
+
+    // Row 3: CTRL, ASDFGHJKL, ;+, '", ←, →
     [{l:'CTRL',k:'Control',c:'key-special key-w-1h'},
      {l:'A',k:'a'},{l:'S',k:'s'},{l:'D',k:'d'},{l:'F',k:'f'},{l:'G',k:'g'},
      {l:'H',k:'h'},{l:'J',k:'j'},{l:'K',k:'k'},{l:'L',k:'l'},
-     {l:';',k:';'},{l:"'",k:"'"},{l:'RETURN',k:'Enter',c:'key-special key-w-2'}],
-    [{l:'SHIFT',k:'Shift',c:'key-special key-w-2h'},
-     {l:'Z',k:'z'},{l:'X',k:'x'},{l:'C',k:'c'},{l:'V',k:'v'},{l:'B',k:'b'},
-     {l:'N',k:'n'},{l:'M',k:'m'},{l:',',k:','},{l:'.',k:'.'},{l:'/',k:'/'},
-     {l:'SHIFT',k:'Shift',c:'key-special key-w-2'}],
-    [{l:'RESET',k:'Escape',c:'key-reset key-w-1h'},{l:'⌥',k:'Alt',c:'key-special'},
-     {l:'',k:' ',c:'key-w-sp'},{l:'⌘',k:'Meta',c:'key-special'},
+     {l:'+',s:';',k:';'},{l:'"',s:"'",k:"'"},
      {l:'←',k:'ArrowLeft',c:'key-special'},{l:'→',k:'ArrowRight',c:'key-special'}],
+
+    // Row 4: SHIFT, ZXCVBNM, ,< .> /?  + big red EXECUTE replacing right SHIFT
+    [{l:'SHIFT',k:'Shift',c:'key-special key-w-1h'},
+     {l:'Z',k:'z'},{l:'X',k:'x'},{l:'C',k:'c'},{l:'V',k:'v'},{l:'B',k:'b'},
+     {l:'N',k:'n'},{l:'M',k:'m'},
+     {l:'<',s:',',k:','},{l:'>',s:'.',k:'.'},{l:'?',s:'/',k:'/'},
+     {l:'EXECUTE',k:'Enter',c:'key-execute key-w-execute'}],
+
+    // Row 5: spacebar only (thick, centred)
+    [{l:'',k:' ',c:'key-w-space'}],
   ];
 
   function buildKeyboard() {
@@ -524,7 +841,7 @@
     playSample('keyboard');
     if (key === 'Backspace') { input.value = input.value.slice(0,-1); }
     else if (key === 'Escape') { input.value = ''; }
-    else if (['Tab','Shift','Control','Alt','Meta','ArrowLeft','ArrowRight'].includes(key)) { /* ignore */ }
+    else if (['Tab','Shift','Control','Alt','Meta','Repeat','ArrowLeft','ArrowRight'].includes(key)) { /* ignore */ }
     else if (key === ' ') { input.value += ' '; }
     else { input.value += key; }
     input.focus();
@@ -546,7 +863,7 @@
   function closeSettings() { document.getElementById('settings-modal').classList.remove('open'); }
   function applySettings() {
     const v = parseInt(document.getElementById('settings-minutes').value);
-    if (isNaN(v)||v<1||v>9999) return;
+    if (isNaN(v)||v<1||v>999) return;
     playSample('shuffle');
     closeSettings(); resetTimer(v*60);
     printResponse(`<span class="text-amber">&gt;: TIMER SET TO ${v} MINUTES.</span>`);

@@ -216,14 +216,6 @@ button, input { font-family: inherit; }
   box-shadow: inset 0 2px 5px rgba(0,0,0,0.6), inset 0 0 0 1px #3c3c3c;
 }
 
-.timer-separator {
-  width: 12px; align-self: stretch;
-  background: linear-gradient(180deg, #2e2e2e, #1e1e1e 50%, #2e2e2e);
-  border-radius: 2px;
-  box-shadow: inset 0 0 4px rgba(0,0,0,0.9);
-  flex-shrink: 0;
-}
-
 /* ── INDIVIDUAL FLIP TILE ── */
 .flip-digit {
   position: relative;
@@ -517,16 +509,42 @@ button, input { font-family: inherit; }
 .key-w-3  { min-width: 84px; }
 .key-w-sp { min-width: 220px; }
 .key-w-ret { min-width: 76px; }
+.key-w-execute { min-width: 96px; }
+.key-w-space   { min-width: 320px; height: 30px; }
 .key-special {
   background: linear-gradient(175deg, #888070, #706858 40%, #504838);
   color: #c8b888; font-size: 0.54rem; letter-spacing: 0.5px;
 }
 .key-special:active, .key-special.pressed { background: linear-gradient(175deg, #707860, #606848 40%, #404830); color: var(--green-bright); }
-.key-reset {
-  background: linear-gradient(175deg, #883030, #662020 40%, #441010);
-  color: #ffaaaa; font-size: 0.54rem;
+
+/* ── EXECUTE — prominent red key in place of right SHIFT ── */
+.key-execute {
+  background: linear-gradient(175deg, #d83030, #b01818 45%, #801010);
+  border: 1px solid #4a0808;
+  border-bottom: 3px solid #380404;
+  color: #ffffff;
+  font-size: 0.7rem;
+  letter-spacing: 1.5px;
+  font-weight: bold;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  box-shadow:
+    inset 0 1px 2px rgba(255,255,255,0.35),
+    inset 0 -2px 4px rgba(0,0,0,0.35),
+    0 1px 4px rgba(200,0,0,0.45),
+    0 0 10px rgba(220,30,30,0.25);
 }
-.key-reset:active, .key-reset.pressed { background: #440000; color: #ff4444; }
+.key-execute .key-main { font-size: 0.7rem; color: #ffffff; }
+.key-execute:hover { filter: brightness(1.1); }
+.key-execute:active, .key-execute.pressed {
+  background: linear-gradient(175deg, #a01818, #800808 45%, #500404);
+  color: #ffdada;
+  border-color: #2a0202;
+  box-shadow:
+    inset 0 1px 3px rgba(0,0,0,0.5),
+    0 0 18px rgba(255,40,40,0.7);
+  transform: translateY(2px);
+  border-bottom-width: 1px;
+}
 
 /* ═══════════════════════════════════════════
    FULLSCREEN GAME MENU OVERLAY
@@ -745,6 +763,8 @@ footer a:hover { color: var(--green); }
   .key-w-2h { min-width: 60px; }
   .key-w-2  { min-width: 46px; }
   .key-w-1h { min-width: 42px; }
+  .key-w-execute { min-width: 70px; }
+  .key-w-space   { min-width: 200px; height: 26px; }
   .btn-kbd-toggle { display: none; }
   .center-col { padding: 10px 6px 14px; }
   .menu-stations-grid { grid-template-columns: repeat(3, 1fr); }
@@ -755,5 +775,7 @@ footer a:hover { color: var(--green); }
   :root { --tile-w: 36px; --tile-h: 54px; --tile-fs: 3rem; }
   .key { min-width: 24px; }
   .key-w-sp { min-width: 120px; }
+  .key-w-execute { min-width: 56px; }
+  .key-w-space   { min-width: 150px; }
   .menu-stations-grid { grid-template-columns: repeat(2, 1fr); }
 }
