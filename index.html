@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -6,6 +6,11 @@
   <title>The Swan Station — Push The Button</title>
   <meta name="description" content="DHARMA Initiative Swan Station. Enter 4 8 15 16 23 42 every 108 minutes.">
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+  <link rel="manifest" href="favicons/site.webmanifest">
 </head>
 <body>
 
@@ -31,7 +36,7 @@
 <!-- STATION MODAL -->
 <div class="modal-overlay" id="station-modal">
   <div class="modal-box station-modal-box">
-    <div style="font-size:2.2rem;margin-bottom:10px;opacity:0.35;">☯</div>
+    <img class="station-modal-logo" id="station-modal-logo" src="" alt="">
     <h3 id="station-modal-title">STATION</h3>
     <p id="station-modal-desc"></p>
     <br>
@@ -47,22 +52,22 @@
     <!-- 6 stations (2×3 grid — Swan is this page) -->
     <div class="menu-stations-grid">
       <button class="menu-station-btn" data-station="Flame">
-        <span class="menu-station-icon">🔥</span><span>THE FLAME</span>
+        <img class="menu-station-icon" src="assets/Logo_TheFlame.png" alt=""><span>THE FLAME</span>
       </button>
       <button class="menu-station-btn" data-station="Hydra">
-        <span class="menu-station-icon">⚗</span><span>THE HYDRA</span>
+        <img class="menu-station-icon" src="assets/Logo_TheHydra.png" alt=""><span>THE HYDRA</span>
       </button>
       <button class="menu-station-btn" data-station="Arrow">
-        <span class="menu-station-icon">➶</span><span>THE ARROW</span>
+        <img class="menu-station-icon" src="assets/Logo_TheArrow.png" alt=""><span>THE ARROW</span>
       </button>
       <button class="menu-station-btn" data-station="Pearl">
-        <span class="menu-station-icon">◉</span><span>THE PEARL</span>
+        <img class="menu-station-icon" src="assets/Logo_ThePearl.png" alt=""><span>THE PEARL</span>
       </button>
       <button class="menu-station-btn" data-station="Looking Glass">
-        <span class="menu-station-icon">⟁</span><span>LOOKING GLASS</span>
+        <img class="menu-station-icon" src="assets/Logo_LookingGlass.png" alt=""><span>LOOKING GLASS</span>
       </button>
       <button class="menu-station-btn" data-station="Orchid">
-        <span class="menu-station-icon">✾</span><span>THE ORCHID</span>
+        <img class="menu-station-icon" src="assets/Logo_TheOrchid.png" alt=""><span>THE ORCHID</span>
       </button>
     </div>
 
@@ -102,25 +107,7 @@
     <div class="top-bar-left"></div>
 
     <div class="top-bar-center">
-      <svg class="dharma-logo" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
-        <polygon points="60,4 99,24 116,60 99,96 60,116 21,96 4,60 21,24" fill="#fff" stroke="#000" stroke-width="2"/>
-        <circle cx="60" cy="60" r="42" fill="#000"/>
-        <circle cx="60" cy="60" r="38" fill="#fff"/>
-        <circle cx="60" cy="60" r="30" fill="#000"/>
-        <g fill="#fff">
-          <ellipse cx="60" cy="65" rx="14" ry="10"/>
-          <ellipse cx="60" cy="55" rx="7" ry="10"/>
-          <path d="M54,55 Q50,42 58,36 Q64,30 66,38 Q62,44 60,55 Z" fill="#fff"/>
-          <circle cx="65" cy="34" r="5" fill="#fff"/>
-          <path d="M68,33 L74,32 L70,36 Z" fill="#e8b000"/>
-          <circle cx="67" cy="32" r="1" fill="#000"/>
-        </g>
-        <text x="60" y="78" text-anchor="middle" font-family="serif" font-size="9" fill="#fff" font-weight="bold">DHARMA</text>
-        <g stroke="#333" stroke-width="1.5" fill="none">
-          <line x1="60" y1="18" x2="60" y2="10"/><line x1="60" y1="102" x2="60" y2="110"/>
-          <line x1="18" y1="60" x2="10" y2="60"/><line x1="102" y1="60" x2="110" y2="60"/>
-        </g>
-      </svg>
+      <img class="dharma-logo" src="assets/Logo_TheSwan.png" alt="The Swan Station">
       <div class="site-title-block">
         <span class="site-title">THE SWAN STATION</span>
         <span class="site-status">
@@ -194,13 +181,9 @@
 
   <!-- FOOTER -->
   <footer>
-    <span style="text-align:left;">
-      <a href="https://lostpedia.fandom.com/wiki/The_Swan" target="_blank" rel="noopener">Lostpedia</a>
-      &nbsp;·&nbsp;
-      <a href="https://en.wikipedia.org/wiki/Lost_(TV_series)" target="_blank" rel="noopener">Wikipedia</a>
-    </span>
+    <span style="text-align:left;">No tracking · No analytics · No cookies</span>
     <span id="footer-time" style="text-align:center;">—</span>
-    <span style="text-align:right;">Tribute to ABC's LOST (2004–2010) &nbsp;·&nbsp; Namaste.</span>
+    <span style="text-align:right;">Tribute to ABC's LOST &nbsp;·&nbsp; Namaste.</span>
   </footer>
 
 </div>

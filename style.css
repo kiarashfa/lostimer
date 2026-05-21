@@ -61,7 +61,7 @@ button, input { font-family: inherit; }
   padding: 0 14px;
   background: var(--panel);
   border-bottom: 1px solid var(--panel-border);
-  height: 52px;
+  height: 64px;
   flex-shrink: 0;
   position: relative;
   z-index: 100;
@@ -75,17 +75,17 @@ button, input { font-family: inherit; }
 .top-bar-right { display: flex; align-items: center; gap: 10px; }
 
 /* Dharma SVG logo in top bar */
-.dharma-logo { width: 42px; height: 42px; flex-shrink: 0; }
+.dharma-logo { width: 56px; height: 56px; flex-shrink: 0; object-fit: contain; }
 
 .site-title-block { display: flex; flex-direction: column; line-height: 1.2; }
 .site-title {
   font-family: var(--font-vt);
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   color: var(--green);
   letter-spacing: 3px;
 }
 .site-status {
-  font-size: 0.58rem;
+  font-size: 0.72rem;
   color: var(--green-dim);
   letter-spacing: 2px;
 }
@@ -599,22 +599,25 @@ button, input { font-family: inherit; }
   border: 1px solid #222;
   color: var(--green-dim);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
-  padding: 10px 8px 8px;
+  font-size: 0.72rem;
+  padding: 12px 10px 10px;
   cursor: pointer;
   text-align: center;
   transition: all 0.15s;
-  display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px;
+  display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;
   letter-spacing: 0.5px;
   width: 100%;
 }
 .menu-station-btn:hover { border-color: var(--green-dim); color: var(--green); background: #0f1a0f; }
 .menu-station-icon {
-  font-size: 1.6rem;
-  opacity: 0.4;
-  transition: opacity 0.15s;
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  opacity: 0.55;
+  transition: opacity 0.15s, filter 0.15s;
+  flex-shrink: 0;
 }
-.menu-station-btn:hover .menu-station-icon { opacity: 0.7; }
+.menu-station-btn:hover .menu-station-icon { opacity: 1; }
 
 /* Menu links section */
 .menu-links {
@@ -680,14 +683,23 @@ button, input { font-family: inherit; }
 /* Station modal */
 .station-modal-box {
   background: var(--sidebar-bg); border: 1px solid var(--red-alarm);
-  padding: 28px; max-width: 280px; width: 90%; text-align: center;
+  padding: 24px 28px 28px; max-width: 320px; width: 90%; text-align: center;
   box-shadow: 0 0 40px rgba(200,0,0,0.15);
 }
+.station-modal-logo {
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 14px;
+  object-fit: contain;
+  opacity: 0.85;
+  filter: drop-shadow(0 0 12px rgba(200,0,0,0.35));
+}
 .station-modal-box h3 {
-  font-family: var(--font-vt); font-size: 1.2rem; color: var(--red-alarm);
+  font-family: var(--font-vt); font-size: 1.4rem; color: var(--red-alarm);
   letter-spacing: 3px; margin-bottom: 10px;
 }
-.station-modal-box p { font-size: 0.7rem; color: var(--green-dim); letter-spacing: 1px; line-height: 1.9; }
+.station-modal-box p { font-size: 0.72rem; color: var(--green-dim); letter-spacing: 1px; line-height: 1.9; }
 
 /* ═══════════════════════════════════════════
    FAILURE OVERLAY
@@ -739,10 +751,136 @@ footer a:hover { color: var(--green); }
 #footer-time { color: var(--green); font-weight: bold; }
 
 /* ═══════════════════════════════════════════
-   VIDEO inside monitor
+   VIDEO inside monitor (inline fallback)
 ═══════════════════════════════════════════ */
 .screen-video {
   width: 100%; max-height: 200px; background: #000; display: block; margin: 6px 0;
+}
+
+/* ═══════════════════════════════════════════
+   FULLSCREEN ORIENTATION FILM
+   When .monitor-fullscreen is active on .monitor-screen,
+   the normal terminal content is hidden and an absolutely
+   positioned video layout fills the entire monitor area.
+═══════════════════════════════════════════ */
+.monitor-screen.monitor-fullscreen .screen-scroll {
+  /* Hide normal scroll/content; the .orient-fullscreen layer takes over.
+     We keep it in the DOM so #screen-content (which hosts .orient-fullscreen)
+     can still be queried. */
+  padding: 0;
+  overflow: hidden;
+}
+.monitor-screen.monitor-fullscreen .screen-content {
+  height: 100%;
+}
+.monitor-screen.monitor-fullscreen #screen-input-area {
+  display: none;
+}
+
+.orient-fullscreen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #000;
+  z-index: 3;       /* below scanlines (::after z=4) and vignette (::before z=5) */
+}
+
+/* Top title strip — keeps the two header lines visible above the film */
+.orient-header {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 14px 8px;
+  background: linear-gradient(180deg, rgba(0,40,0,0.85), rgba(0,20,0,0.6));
+  border-bottom: 1px solid rgba(0,204,0,0.25);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 1px;
+  line-height: 1.4;
+  text-shadow: 0 0 5px rgba(0,204,0,0.5);
+}
+.orient-header-line { display: block; }
+
+/* Exit button — top-right, terminal-styled */
+.orient-exit-btn {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  z-index: 8;       /* above everything inside .monitor-screen including scanlines */
+  background: rgba(0,30,0,0.85);
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 1.5px;
+  padding: 4px 9px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  text-shadow: 0 0 4px rgba(0,204,0,0.4);
+}
+.orient-exit-btn:hover {
+  background: var(--green);
+  color: #000;
+  border-color: var(--green);
+  text-shadow: none;
+}
+
+/* Video container — takes the remaining space below the header */
+.orient-video-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  min-height: 0;    /* allow flex item to shrink properly */
+}
+.orient-video {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;   /* preserves the 1.33:1 aspect ratio */
+  background: #000;
+  display: block;
+}
+
+/* Fallback shown if the video file is missing / errors */
+.orient-fallback {
+  display: none;       /* shown via JS by setting display:flex */
+  position: absolute;
+  inset: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.7;
+  letter-spacing: 1px;
+  padding: 20px;
+}
+
+/* "TRANSMISSION COMPLETE" overlay shown briefly when the video ends */
+.orient-complete {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.75);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  letter-spacing: 3px;
+  text-shadow: 0 0 8px rgba(255,170,0,0.5);
+  animation: orientCompleteIn 0.4s ease-out;
+}
+@keyframes orientCompleteIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ═══════════════════════════════════════════
@@ -769,6 +907,11 @@ footer a:hover { color: var(--green); }
   .center-col { padding: 10px 6px 14px; }
   .menu-stations-grid { grid-template-columns: repeat(3, 1fr); }
   .top-bar-center { position: static; transform: none; }
+  /* Slightly tame the upsized header on mobile */
+  .top-bar { height: 56px; }
+  .dharma-logo { width: 44px; height: 44px; }
+  .site-title { font-size: 1.3rem; }
+  .site-status { font-size: 0.62rem; }
 }
 
 @media (max-width: 400px) {

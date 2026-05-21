@@ -329,14 +329,22 @@
 <span class="screen-line"> </span>`,
 
     orientation: () => `
-<span class="screen-line text-amber">// ORIENTATION FILM — REEL B //</span>
-<span class="screen-line text-dim">DR. MARVIN CANDLE — DHARMA INITIATIVE</span>
-<span class="screen-line"> </span>
-<video class="screen-video" controls id="orient-video">
-  <source src="assets/orientation.mp4" type="video/mp4">
-</video>
-<span class="screen-line" id="video-fallback" style="display:none" class="text-red">&gt; REEL NOT FOUND. Upload to /assets/orientation.mp4</span>
-<span class="screen-line"> </span>`,
+<div class="orient-fullscreen">
+  <div class="orient-header">
+    <span class="orient-header-line text-amber">// ORIENTATION FILM — REEL B //</span>
+    <span class="orient-header-line text-dim">DR. MARVIN CANDLE — DHARMA INITIATIVE</span>
+  </div>
+  <button class="orient-exit-btn" id="orient-exit-btn" title="Exit (Esc)">[× EXIT]</button>
+  <div class="orient-video-wrap">
+    <video class="orient-video" id="orient-video" autoplay controls playsinline>
+      <source src="assets/orientation.mp4" type="video/mp4">
+    </video>
+    <div class="orient-fallback" id="video-fallback">
+      <span class="text-red">&gt; REEL NOT FOUND.</span><br>
+      <span class="text-dim">Upload to /assets/orientation.mp4</span>
+    </div>
+  </div>
+</div>`,
 
     faq: () => `
 <span class="screen-line text-amber">// ABOUT & FAQ //</span>
@@ -370,11 +378,33 @@
 
     about: () => `
 <span class="screen-line text-amber">// ABOUT THIS PROJECT //</span>
-<span class="screen-line"> </span>
-<span class="screen-line">This page will contain a full About</span>
-<span class="screen-line">section. For now, see FAQ below.</span>
-<span class="screen-line"> </span>
-<span class="screen-line text-dim">Type <span class="text-amber">faq</span> for full FAQ.</span>
+<span class="screen-line text-dim">─────────────────────────────────────</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">The Swan Station is a fan tribute to ABC's <span class="text-amber">LOST</span> (2004–2010) and a working 108-minute countdown timer. Push the button. Or don't.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-amber">// WHY THIS EXISTS //</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">LOST is where my love of TV series began. I was watching shows before, but LOST is the one that revolutionized the medium and me. The DHARMA Initiative, the stations, the counter, the mysterious hieroglyphics... they were the fuel to my curiosity.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">I always wanted to make the counter for myself. Now that I'm vibe coding and building little pages for things I love, I finally got around to it. An old wish, come true.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-amber">// CREDITS & INSPIRATIONS //</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line"><span class="text-dim">·</span> LOST (2004–2010). J.J. Abrams & Damon Lindelof</span>
+<span class="screen-line"><span class="text-dim">·</span> The DHARMA Initiative (for the clip & octagons)</span>
+<span class="screen-line"><span class="text-dim">·</span> <a href="https://lostpedia.fandom.com/" target="_blank" rel="noopener">Lostpedia</a> (for reference material)</span>
+<span class="screen-line"><span class="text-dim">·</span> Mark Snow's score (had on loop while building this)</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-amber">// DISCLAIMER //</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-dim">This is an unofficial fan tribute. Not affiliated with, endorsed by, or sponsored by ABC, Disney, Bad Robot, or the DHARMA Initiative. All trademarks and copyrights belong to their respective owners.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-dim">No island was harmed in the making of this site.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-dim">─────────────────────────────────────</span>
+<span class="screen-line text-amber">Namaste. And good luck.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-dim">Type <span class="text-amber">faq</span> for usage details, or <span class="text-amber">home</span> to return to the station.</span>
 <span class="screen-line"> </span>`,
 
     'failure-end': () => `<div id="failure-end-content"></div>`,
@@ -418,15 +448,30 @@
     // If we are leaving the hello screen, terminate any active chat session.
     if (chatActive && key !== 'hello') endChat();
 
+    // If we are leaving the orientation screen, pause any playing video so
+    // its audio doesn't continue in the background (innerHTML rewrite usually
+    // handles this but we're being explicit).
+    if (activeNav === 'orientation' && key !== 'orientation') {
+      const prevVideo = document.getElementById('orient-video');
+      if (prevVideo) { try { prevVideo.pause(); } catch(e) {} }
+    }
+
     activeNav = key;
     const fn = SCREENS[key];
     document.getElementById('screen-content').innerHTML = fn ? fn() : SCREENS.home();
-    // Inject input area (except pure failure screen)
+
+    // Toggle fullscreen-monitor mode for the orientation film.
+    const monitor = document.getElementById('monitor-screen');
+    if (monitor) {
+      monitor.classList.toggle('monitor-fullscreen', key === 'orientation');
+    }
+
+    // Inject input area (except pure failure screen and fullscreen orientation)
     const inputArea = document.getElementById('screen-input-area');
-    if (key !== 'failure') {
-      inputArea.innerHTML = termInputHTML();
-    } else {
+    if (key === 'failure' || key === 'orientation') {
       inputArea.innerHTML = '';
+    } else {
+      inputArea.innerHTML = termInputHTML();
     }
     // Auto-focus input on screen change.
     // On touch devices, suppress the OS keyboard so only our virtual keyboard shows.
@@ -440,13 +485,37 @@
       i.focus();
     }, 40);
 
-    // Wire orientation fallback
+    // Wire orientation fallback + auto-exit on end
     if (key === 'orientation') {
       const v = document.getElementById('orient-video');
       const fb = document.getElementById('video-fallback');
       if (v && fb) {
-        v.addEventListener('error', () => { v.style.display='none'; fb.style.display='block'; });
-        setTimeout(() => { if (!v.duration || isNaN(v.duration)) { v.style.display='none'; fb.style.display='block'; } }, 2000);
+        // Hide fallback by default; only show on error / missing file.
+        fb.style.display = 'none';
+        v.addEventListener('error', () => {
+          v.style.display = 'none';
+          fb.style.display = 'flex';
+        });
+        v.addEventListener('ended', () => {
+          // Brief "transmission complete" beat, then back to home.
+          if (activeNav !== 'orientation') return;
+          const wrap = v.closest('.orient-video-wrap');
+          if (wrap) {
+            const done = document.createElement('div');
+            done.className = 'orient-complete';
+            done.innerHTML = '<span class="text-amber">// TRANSMISSION COMPLETE //</span>';
+            wrap.appendChild(done);
+          }
+          setTimeout(() => {
+            if (activeNav === 'orientation') setScreen('home');
+          }, 1800);
+        });
+        setTimeout(() => {
+          if (!v.duration || isNaN(v.duration)) {
+            v.style.display = 'none';
+            fb.style.display = 'flex';
+          }
+        }, 2000);
       }
     }
 
@@ -941,6 +1010,12 @@
       // Execute button
       if (t.id === 'btn-execute' || t.closest('#btn-execute')) { submitInput(); return; }
 
+      // Orientation EXIT button
+      if (t.id === 'orient-exit-btn' || t.closest('#orient-exit-btn')) {
+        setScreen('home');
+        return;
+      }
+
       // KBD toggle
       if (t.id === 'btn-kbd-toggle' || t.closest('#btn-kbd-toggle')) {
         const kw = document.querySelector('.keyboard-wrap');
@@ -972,7 +1047,7 @@
 
       // Station buttons in menu overlay
       const stBtn = t.closest('.menu-station-btn');
-      if (stBtn) { showStationModal(stBtn.dataset.station); closeMenu(); return; }
+      if (stBtn) { showStationModal(stBtn.dataset.station); return; }
 
       // Station modal close
       if (t.id === 'station-modal-close') { document.getElementById('station-modal').classList.remove('open'); return; }
@@ -997,7 +1072,22 @@
       if (e.key === 'Enter') {
         if (typingInInput) { e.preventDefault(); submitInput(); }
       }
-      if (e.key === 'Escape') { closeMenu(); closeSettings(); }
+      if (e.key === 'Escape') {
+        const menuOpen = document.getElementById('menu-overlay').classList.contains('open');
+        const settingsOpen = document.getElementById('settings-modal').classList.contains('open');
+        const stationOpen = document.getElementById('station-modal').classList.contains('open');
+        // Close only the topmost open layer so the user stays in their context
+        // (e.g. closing a station modal returns to the menu underneath).
+        if (stationOpen) {
+          document.getElementById('station-modal').classList.remove('open');
+        } else if (settingsOpen) {
+          closeSettings();
+        } else if (menuOpen) {
+          closeMenu();
+        } else if (activeNav === 'orientation') {
+          setScreen('home');
+        }
+      }
     });
 
     // Settings enter key
@@ -1006,8 +1096,29 @@
     });
   }
 
+  // Map station display name (from data-station) → logo filename.
+  const STATION_LOGOS = {
+    'Flame':         'assets/Logo_TheFlame.png',
+    'Hydra':         'assets/Logo_TheHydra.png',
+    'Arrow':         'assets/Logo_TheArrow.png',
+    'Pearl':         'assets/Logo_ThePearl.png',
+    'Looking Glass': 'assets/Logo_LookingGlass.png',
+    'Orchid':        'assets/Logo_TheOrchid.png',
+  };
+
   function showStationModal(name) {
     const m = document.getElementById('station-modal');
+    const logo = document.getElementById('station-modal-logo');
+    if (logo) {
+      const src = STATION_LOGOS[name];
+      if (src) {
+        logo.src = src;
+        logo.alt = 'The ' + name;
+        logo.style.display = '';
+      } else {
+        logo.style.display = 'none';
+      }
+    }
     document.getElementById('station-modal-title').textContent = 'THE ' + name.toUpperCase();
     document.getElementById('station-modal-desc').innerHTML =
       'ACCESS: <span style="color:var(--red-alarm)">CLASSIFIED</span><br><br>This station is not yet operational.<br><br>Namaste.';
