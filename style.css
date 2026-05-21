@@ -756,7 +756,7 @@ footer a:hover { color: var(--green); }
   .timer-separator { width: 10px; }
   .monitor-screen { height: 280px; }
   .keyboard-wrap { display: block !important; }
-  .key { min-width: 28px; height: 28px; }
+  .key { min-width: calc((100vw - 40px) / 17); height: 28px; }
   .key .key-main { font-size: 0.65rem; }
   .key-w-sp { min-width: 160px; }
   .key-w-ret { min-width: 58px; }
