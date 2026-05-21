@@ -45,12 +45,13 @@
     tick:     { src: 'soundfx/tick.mp3',     vol: 0.55, pool: 2 },
     beep:     { src: 'soundfx/beep.mp3',     vol: 0.70, pool: 2 },
     alarm:    { src: 'soundfx/alarm.mp3',    vol: 0.85, pool: 2 },
-    keyboard: { src: 'soundfx/keyboard.mp3', vol: 0.45, pool: 6 }, // fast typing
+    keyboard: { src: 'soundfx/keyboard.mp3', vol: 0.45, pool: 6 },
     reset:    { src: 'soundfx/reset.mp3',    vol: 0.80, pool: 1 },
     shuffle:  { src: 'soundfx/shuffle.mp3',  vol: 0.75, pool: 1 },
     menu:     { src: 'soundfx/menu.mp3',     vol: 0.65, pool: 1 },
     sysfail:  { src: 'soundfx/sysfail.mp3',  vol: 0.90, pool: 1 },
-    gear:     { src: 'soundfx/gear.mp3',     vol: 0.70, pool: 1 },
+    gear:     { src: 'soundfx/gear.mp3',     vol: 0.95, pool: 1 },
+    wrong:    { src: 'soundfx/wrong.mp3',    vol: 0.75, pool: 2 },
   };
   const samples = {};       // name -> { pool: [Audio,...], idx, vol }
 
@@ -85,7 +86,7 @@
   // each flip-digit animation, so playTick() is intentionally a no-op now.
   function playTick()   { /* handled by 1s timer loop */ }
   function playAccept() { playSample('reset'); }
-  function playReject() { /* no dedicated sound — silent on bad input */ }
+  function playReject() { playSample('wrong'); }
 
   // ── Beep / Alarm loops ─────────────────────────────────────────────
   // Mutually exclusive: when alarm kicks in (≤1:00), beep stops.
@@ -148,6 +149,229 @@
     setTimeout(() => playSample('sysfail'), 2400);
   }
   // ─────────────────────────────────────────────────────────────────────
+
+  // ═══════════════════════════════════════════════════════════════════
+  //  TYPEWRITER — animated rendering of HTML into a DOM element.
+  //
+  //  Use `typewriter(el, html, options)` to render `html` into `el` one
+  //  character at a time. HTML tags (e.g. <br>, <span class="...">) are
+  //  inserted instantly; only text content is paced. A blinking ▮ cursor
+  //  follows the typing head while active. Animation is cancellable and
+  //  skippable.
+  //
+  //  Presets are exposed via `typewriter.modes` — pick by name:
+  //    'type'   — chat-style, slow + punctuation pauses + jitter
+  //    'stream' — page-loading style, fast + cursor
+  //    'fast'   — quick sweep, almost-instant
+  //    'still'  — no animation, render instantly
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Track the current in-flight animation so it can be cancelled or skipped.
+  let _twActive = null;   // { skip: fn(), cancel: fn() } or null
+
+  function typewriterCancel() {
+    if (_twActive) { _twActive.cancel(); _twActive = null; }
+  }
+  function typewriterSkip() {
+    if (_twActive) { _twActive.skip(); _twActive = null; }
+  }
+  function typewriterIsActive() { return !!_twActive; }
+
+  // Walk an HTML string and produce a flat ordered sequence of "tokens":
+  //   { type: 'char', char: 'A', parents: [openTag, openTag, ...] }   ← paced
+  //   { type: 'tag',  html: '<br>', parents: [...] }                  ← instant
+  // Each token carries the list of currently-open tags so that on skip
+  // we can rebuild the final markup faithfully.
+  function tokenizeHtml(html) {
+    const tokens = [];
+    let i = 0;
+    const openTags = [];   // stack of tag-open strings, e.g. ['<span class="text-amber">']
+
+    while (i < html.length) {
+      const ch = html[i];
+
+      if (ch === '<') {
+        // Find matching '>'
+        const end = html.indexOf('>', i);
+        if (end === -1) { i = html.length; break; }
+        const tag = html.substring(i, end + 1);
+        const isClosing = tag.startsWith('</');
+        const isSelfClosing = /<(br|hr|img|input|meta|link)\b[^>]*\/?>/i.test(tag) || tag.endsWith('/>');
+        // For closing tags, pop the open stack BEFORE recording parents,
+        // so the parents snapshot reflects state AFTER this close.
+        if (isClosing) openTags.pop();
+        tokens.push({ type: 'tag', html: tag, parents: openTags.slice() });
+        if (!isClosing && !isSelfClosing) openTags.push(tag);
+        i = end + 1;
+      } else if (ch === '&') {
+        // HTML entity — treat as a single char unit.
+        const end = html.indexOf(';', i);
+        if (end !== -1 && end - i < 10) {
+          tokens.push({ type: 'char', char: html.substring(i, end + 1), parents: openTags.slice() });
+          i = end + 1;
+        } else {
+          tokens.push({ type: 'char', char: ch, parents: openTags.slice() });
+          i++;
+        }
+      } else if (ch === '\n' || ch === '\r') {
+        // Preserve as instant content (don't pace whitespace between tags).
+        tokens.push({ type: 'tag', html: ch, parents: openTags.slice() });
+        i++;
+      } else {
+        tokens.push({ type: 'char', char: ch, parents: openTags.slice() });
+        i++;
+      }
+    }
+    return tokens;
+  }
+
+  // Pause (extra delay) after certain punctuation, in ms.
+  function punctuationDelay(ch) {
+    if (ch === '.' || ch === '?' || ch === '!') return 250;
+    if (ch === ',' || ch === ';' || ch === ':') return 120;
+    return 0;
+  }
+
+  function typewriter(element, html, options) {
+    typewriterCancel();
+    if (!element) return Promise.resolve();
+
+    const opts = Object.assign({
+      speed: 30,
+      jitter: 0,
+      punctuationPause: false,
+      showCursor: true,
+      cursorChar: '▮',
+      scrollEl: null,
+      tickSound: false,
+      tickEvery: 3,            // play tick sample every Nth char
+      onComplete: null,
+    }, options || {});
+
+    // 'still' mode shortcut — render instantly with no cursor.
+    if (opts.speed <= 0) {
+      element.innerHTML = html;
+      if (opts.scrollEl) opts.scrollEl.scrollTop = opts.scrollEl.scrollHeight;
+      if (opts.onComplete) opts.onComplete();
+      return Promise.resolve();
+    }
+
+    const tokens = tokenizeHtml(html);
+    let idx = 0;
+    let cancelled = false;
+    let timeoutId = null;
+    let charsSinceTick = 0;
+
+    // We build the visible markup as a plain string and assign innerHTML
+    // each step. The cursor is rendered as a string fragment placed at
+    // the current insertion point — BEFORE any auto-closing tags — so
+    // it visually follows the typing head inside the correct span(s).
+    let visibleHtml = '';
+    const cursorHtml = opts.showCursor
+      ? `<span class="tw-cursor">${opts.cursorChar}</span>`
+      : '';
+    element.innerHTML = cursorHtml;     // cursor shown immediately
+
+    const scrollFn = () => {
+      if (opts.scrollEl) opts.scrollEl.scrollTop = opts.scrollEl.scrollHeight;
+    };
+
+    return new Promise(resolve => {
+      function finish() {
+        element.innerHTML = html;       // ensure exact final state, no cursor
+        scrollFn();
+        if (_twActive && _twActive._token === token) _twActive = null;
+        if (opts.onComplete) opts.onComplete();
+        resolve();
+      }
+
+      function skip() {
+        cancelled = true;
+        if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        finish();
+      }
+
+      function cancel() {
+        cancelled = true;
+        if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+        // Leave element in whatever state it is — caller will overwrite.
+        resolve();
+      }
+
+      const token = {};   // identity object for ownership check
+      _twActive = { skip, cancel, _token: token };
+
+      function render() {
+        // Compute the closing-tag string for any currently-open parents.
+        const lastTok = tokens[idx - 1];
+        const parents = lastTok ? lastTok.parents : [];
+        const openClosers = parents.map(openTag => {
+          const m = openTag.match(/^<\s*([a-zA-Z][a-zA-Z0-9]*)/);
+          return m ? `</${m[1]}>` : '';
+        }).reverse().join('');
+        // Cursor sits INSIDE the open span(s), right after the last char.
+        element.innerHTML = visibleHtml + cursorHtml + openClosers;
+        scrollFn();
+      }
+
+      function step() {
+        if (cancelled) return;
+        // Burn through any tag tokens (instant) until the next char.
+        while (idx < tokens.length && tokens[idx].type === 'tag') {
+          visibleHtml += tokens[idx].html;
+          idx++;
+        }
+        if (idx >= tokens.length) { finish(); return; }
+
+        const tok = tokens[idx++];
+        visibleHtml += tok.char;
+        render();
+
+        // Sound — every Nth visible char, and only if the char is printable.
+        if (opts.tickSound && tok.char && tok.char.trim()) {
+          charsSinceTick++;
+          if (charsSinceTick >= opts.tickEvery) {
+            charsSinceTick = 0;
+            playSample('keyboard');
+          }
+        }
+
+        let delay = opts.speed;
+        if (opts.jitter) delay += (Math.random() * 2 - 1) * opts.jitter;
+        if (opts.punctuationPause) delay += punctuationDelay(tok.char);
+        if (delay < 1) delay = 1;
+
+        timeoutId = setTimeout(step, delay);
+      }
+
+      step();
+    });
+  }
+
+  // Presets — pass any of these names to setScreen via SCREEN_MODES.
+  typewriter.modes = {
+    type:   { speed: 40, jitter: 15, punctuationPause: true,  showCursor: true,  tickSound: true,  tickEvery: 6 },
+    stream: { speed: 10, jitter: 0,  punctuationPause: false, showCursor: true,  tickSound: false                 },
+    fast:   { speed: 4,  jitter: 0,  punctuationPause: false, showCursor: true,  tickSound: false                 },
+    still:  { speed: 0,  jitter: 0,  punctuationPause: false, showCursor: false, tickSound: false                 },
+  };
+
+  // Per-screen mode mapping. 
+  // null means "do not touch" (screen handles its own rendering)
+  const SCREEN_MODES = {
+    home:           'still',
+    communication:  'still',
+    instructions:   'stream',
+    faq:            'fast',
+    about:          'fast',
+    lockout:        'stream',
+    hello:          'still',     // intro line types in; chat replies use 'type' separately
+    orientation:    null,
+    failure:        null,
+    'failure-end':  null,
+  };
+
+
 
   // ── PERSISTENCE ──
   function saveState() {
@@ -445,6 +669,9 @@
   }
 
   function setScreen(key) {
+    // Cancel any in-flight typewriter animation immediately.
+    typewriterCancel();
+
     // If we are leaving the hello screen, terminate any active chat session.
     if (chatActive && key !== 'hello') endChat();
 
@@ -458,7 +685,19 @@
 
     activeNav = key;
     const fn = SCREENS[key];
-    document.getElementById('screen-content').innerHTML = fn ? fn() : SCREENS.home();
+    const html = fn ? fn() : SCREENS.home();
+    const screenContent = document.getElementById('screen-content');
+
+    // Pick rendering mode for this screen.
+    const modeName = SCREEN_MODES.hasOwnProperty(key) ? SCREEN_MODES[key] : 'stream';
+    if (modeName === null) {
+      // Screen handles its own rendering (orientation, failure-end).
+      screenContent.innerHTML = html;
+    } else {
+      const mode = typewriter.modes[modeName] || typewriter.modes.stream;
+      const scrollEl = document.getElementById('screen-scroll');
+      typewriter(screenContent, html, Object.assign({}, mode, { scrollEl }));
+    }
 
     // Toggle fullscreen-monitor mode for the orientation film.
     const monitor = document.getElementById('monitor-screen');
@@ -576,29 +815,45 @@
   }
 
   // Append a chat exchange to the screen content. `userText` is what the
-  // user typed; `replyHtml` is the system's response (can contain <br>).
+  // user typed (appears instantly); `replyHtml` is the system's response
+  // (typed character-by-character).
   function appendChat(userText, replyHtml) {
     const content = document.getElementById('screen-content');
     if (!content) return;
+    // If a typewriter is still running (e.g. the intro line hasn't
+    // finished typing), skip it to completion so the visible state is
+    // coherent before we append the next exchange.
+    if (typewriterIsActive()) typewriterSkip();
+
     const userLine = document.createElement('span');
     userLine.className = 'screen-line';
     userLine.innerHTML = `<span class="screen-prompt">&gt;:</span> ${escapeHtml(userText)}`;
     content.appendChild(userLine);
+
     if (replyHtml) {
       const spacer = document.createElement('span');
       spacer.className = 'screen-line';
       spacer.innerHTML = '&nbsp;';
       content.appendChild(spacer);
+
       const reply = document.createElement('span');
       reply.className = 'screen-line';
-      reply.innerHTML = `<span class="text-dim">&gt;</span> ${replyHtml}`;
+      // Type only the dynamic reply portion. The "> " prefix appears
+      // instantly so the user can see a new transmission is incoming.
+      reply.innerHTML = '<span class="text-dim">&gt;</span> <span class="tw-target"></span>';
       content.appendChild(reply);
+
       const spacer2 = document.createElement('span');
       spacer2.className = 'screen-line';
       spacer2.innerHTML = '&nbsp;';
       content.appendChild(spacer2);
+
+      const scr = document.getElementById('screen-scroll');
+      const target = reply.querySelector('.tw-target');
+      typewriter(target, replyHtml, Object.assign({}, typewriter.modes.type, { scrollEl: scr }));
     }
-    // Scroll to bottom
+
+    // Scroll to bottom (also done per-char by typewriter)
     const scr = document.getElementById('screen-scroll');
     if (scr) setTimeout(() => scr.scrollTop = scr.scrollHeight, 30);
   }
@@ -618,11 +873,12 @@
     if (/^this is [a-z0-9]+/.test(n)) return true;
     // "i am <name>"
     if (/^i am [a-z0-9]+/.test(n)) return true;
-    if (/^im [a-z0-9]+/.test(n)) return true;
     if (/^i m [a-z0-9]+/.test(n)) return true;
+    if (/^im [a-z0-9]+/.test(n)) return true;
     // "it is <name>"
     if (/^it is [a-z0-9]+/.test(n)) return true;
     if (/^it s [a-z0-9]+/.test(n)) return true;
+    if (/^its [a-z0-9]+/.test(n)) return true;
     // "my name is <name>"
     if (/^my name is [a-z0-9]+/.test(n)) return true;
     return false;
@@ -914,6 +1170,14 @@
   function handleKey(key) {
     const input = document.getElementById('code-input');
     if (!input) return;
+    // If a typewriter animation is running, ESC and Enter (when input is
+    // empty) skip it instead of doing their normal action.
+    if (typewriterIsActive()) {
+      if (key === 'Escape' || (key === 'Enter' && !input.value)) {
+        typewriterSkip();
+        return;
+      }
+    }
     if (key === 'Enter') { submitInput(); return; }
     // Click sound for every virtual-keyboard press (mirrors physical typing).
     playSample('keyboard');
@@ -1007,6 +1271,20 @@
     document.addEventListener('click', e => {
       const t = e.target;
 
+      // Skip in-flight typewriter when user clicks anywhere on the monitor
+      // screen — but only if the click isn't on an interactive element
+      // (input, button, link). We check this BEFORE the early-return
+      // handlers below so the skip fires even when the click target is
+      // the monitor background.
+      if (typewriterIsActive()) {
+        const inMonitor = t.closest('#monitor-screen');
+        const interactive = t.closest('input, button, a, video, .orient-exit-btn');
+        if (inMonitor && !interactive) {
+          typewriterSkip();
+          // Don't return — let the rest of the click handler run normally.
+        }
+      }
+
       // Execute button
       if (t.id === 'btn-execute' || t.closest('#btn-execute')) { submitInput(); return; }
 
@@ -1061,6 +1339,19 @@
       highlightKey(e.key);
       const inp = document.getElementById('code-input');
       const typingInInput = inp && document.activeElement === inp;
+
+      // Skip in-flight typewriter on Esc or Enter (when input is empty).
+      // Doing this BEFORE the regular Enter/Esc handlers below means a
+      // single key press first skips the animation; a second press
+      // proceeds with the normal Enter/Esc behaviour.
+      if (typewriterIsActive()) {
+        if (e.key === 'Escape' || (e.key === 'Enter' && (!inp || !inp.value))) {
+          typewriterSkip();
+          if (e.key === 'Enter') e.preventDefault();
+          return;
+        }
+      }
+
       // Per-character keyboard click while user types in the terminal input.
       // Includes regular chars + Backspace/Delete (anything that mutates value).
       if (typingInInput && e.key !== 'Enter' && e.key !== 'Escape') {

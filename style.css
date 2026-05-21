@@ -407,6 +407,16 @@ button, input { font-family: inherit; }
 }
 @keyframes cursorBlink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 
+/* Typewriter cursor — follows the typing head while the screen renders. */
+.tw-cursor {
+  display: inline-block;
+  color: var(--green) !important;
+  text-shadow: 0 0 5px rgba(0,204,0,0.6) !important;
+  animation: cursorBlink 0.7s step-end infinite;
+  margin-left: 1px;
+  font-weight: bold;
+}
+
 /* ── TERMINAL COMMAND INPUT (inside monitor) ── */
 .term-input-row {
   margin-top: 10px; flex-shrink: 0;
