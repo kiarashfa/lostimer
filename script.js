@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    THE SWAN STATION — script.js  v3
    DHARMA Initiative Computing System
    ============================================ */
@@ -428,8 +428,17 @@
     } else {
       inputArea.innerHTML = '';
     }
-    // Auto-focus input on screen change
-    setTimeout(() => { const i = document.getElementById('code-input'); if (i) i.focus(); }, 40);
+    // Auto-focus input on screen change.
+    // On touch devices, suppress the OS keyboard so only our virtual keyboard shows.
+    setTimeout(() => {
+      const i = document.getElementById('code-input');
+      if (!i) return;
+      if (window.matchMedia('(pointer: coarse)').matches) {
+        i.setAttribute('readonly', '');
+        i.setAttribute('inputmode', 'none');
+      }
+      i.focus();
+    }, 40);
 
     // Wire orientation fallback
     if (key === 'orientation') {
