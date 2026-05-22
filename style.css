@@ -1,9 +1,9 @@
-/* ============================================
+﻿/* ============================================
    THE SWAN STATION — style.css  v3
    DHARMA Initiative Computing System
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Share+Tech+Mono&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&family=Oswald:wght@600;700&family=Share+Tech+Mono&family=VT323&display=swap');
 
 :root {
   --green:        #00cc00;
@@ -404,64 +404,102 @@ button, input { font-family: inherit; }
   color: #111; text-shadow: none;
 }
 
-/* ── ALARM STATE ── */
-.timer-alarm .flip-digit .top-half {
-  background: linear-gradient(180deg, #2a0000 0%, #200000 100%);
-}
-.timer-alarm .flip-digit .bottom-half {
-  background: linear-gradient(180deg, #220000 0%, #180000 100%);
-}
-.timer-alarm .flip-digit .flap {
-  background: linear-gradient(180deg, #2a0000 0%, #200000 100%);
-}
-.timer-alarm .flip-digit .top-half .digit-text,
-.timer-alarm .flip-digit .flap .digit-text {
-  color: var(--red-alarm); text-shadow: 0 0 14px rgba(255,0,0,0.7), 0 0 28px rgba(200,0,0,0.3);
-}
-.timer-alarm .flip-digit .bottom-half .digit-text {
-  color: var(--red-alarm); text-shadow: 0 0 14px rgba(255,0,0,0.7), 0 0 28px rgba(200,0,0,0.3);
-}
-.timer-alarm .flip-group-seconds { background: #1a0000; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px #3a0000; }
-.timer-alarm .flip-group-seconds .flip-digit .top-half {
-  background: linear-gradient(180deg, #2a0000 0%, #200000 100%);
-}
-.timer-alarm .flip-group-seconds .flip-digit .bottom-half {
-  background: linear-gradient(180deg, #220000 0%, #180000 100%);
-}
-.timer-alarm .flip-group-seconds .flip-digit .flap {
-  background: linear-gradient(180deg, #2a0000 0%, #200000 100%);
-}
-.timer-alarm .flip-group-seconds .flip-digit .top-half .digit-text,
-.timer-alarm .flip-group-seconds .flip-digit .flap .digit-text,
-.timer-alarm .flip-group-seconds .flip-digit .bottom-half .digit-text {
-  color: var(--red-alarm); text-shadow: 0 0 14px rgba(255,0,0,0.7), 0 0 28px rgba(200,0,0,0.3);
-}
-.timer-alarm .flip-group-minutes { background: #0d0000; }
+/* ── ALARM STATE (housing glow only — tiles stay their natural color) ── */
+.timer-alarm .flip-group-seconds { background: #1a0a0a; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8), inset 0 0 0 1px #3a1a1a; }
+.timer-alarm .flip-group-minutes { background: #1a0a0a; }
 .timer-alarm .timer-housing { animation: warnPulse 0.8s ease-in-out infinite; }
 @keyframes warnPulse {
   0%,100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 0 0 4px #1e1e1e, 0 4px 0 #0e0e0e, 0 8px 30px rgba(0,0,0,0.95), 0 0 18px rgba(200,0,0,0.3); }
   50%     { box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), inset 0 0 0 4px #1e1e1e, 0 4px 0 #0e0e0e, 0 8px 30px rgba(0,0,0,0.95), 0 0 44px rgba(255,0,0,0.75); }
 }
 
-/* ── GLYPH STATE (hieroglyphs on system failure) ── */
-.timer-glyph .flip-digit .top-half {
-  background: #180000;
+/* ── GLYPH TILE — minutes: red hieroglyphs on dark background ── */
+.flip-digit.glyph-tile .top-half {
+  background: linear-gradient(180deg, #1a0000 0%, #140000 100%) !important;
+  transition: background 0.2s;
 }
-.timer-glyph .flip-digit .bottom-half {
-  background: #180000;
+.flip-digit.glyph-tile .bottom-half {
+  background: linear-gradient(180deg, #1c0000 0%, #120000 100%) !important;
+  transition: background 0.2s;
 }
-.timer-glyph .flip-digit .top-half .digit-text,
-.timer-glyph .flip-digit .bottom-half .digit-text {
-  color: #ff2200; font-size: 2rem; text-shadow: 0 0 14px rgba(255,50,0,0.8);
+.flip-digit.glyph-tile .flap {
+  background: linear-gradient(180deg, #1a0000 0%, #140000 100%) !important;
 }
-.timer-glyph .flip-digit .flap { display: none !important; }
-.timer-glyph .flip-group-seconds .flip-digit .top-half,
-.timer-glyph .flip-group-seconds .flip-digit .bottom-half {
-  background: #180000;
+.flip-digit.glyph-tile .top-half .digit-text,
+.flip-digit.glyph-tile .flap .digit-text {
+  font-family: 'Noto Sans Egyptian Hieroglyphs', serif !important;
+  color: #dd1100 !important;
+  text-shadow: 0 0 12px rgba(255,40,0,0.6), 0 0 24px rgba(200,0,0,0.25) !important;
 }
-.timer-glyph .flip-group-seconds .flip-digit .top-half .digit-text,
-.timer-glyph .flip-group-seconds .flip-digit .bottom-half .digit-text {
-  color: #ff2200; font-size: 2rem; text-shadow: 0 0 14px rgba(255,50,0,0.8);
+.flip-digit.glyph-tile .bottom-half .digit-text {
+  font-family: 'Noto Sans Egyptian Hieroglyphs', serif !important;
+  color: #dd1100 !important;
+  text-shadow: 0 0 12px rgba(255,40,0,0.6), 0 0 24px rgba(200,0,0,0.25) !important;
+}
+
+/* ── GLYPH TILE INVERTED — seconds: black hieroglyphs on red background ── */
+.flip-digit.glyph-tile-inv .top-half {
+  background: linear-gradient(180deg, #cc1000 0%, #b00e00 100%) !important;
+  transition: background 0.2s;
+}
+.flip-digit.glyph-tile-inv .bottom-half {
+  background: linear-gradient(180deg, #c01000 0%, #a00c00 100%) !important;
+  transition: background 0.2s;
+}
+.flip-digit.glyph-tile-inv .flap {
+  background: linear-gradient(180deg, #cc1000 0%, #b00e00 100%) !important;
+}
+.flip-digit.glyph-tile-inv .top-half .digit-text,
+.flip-digit.glyph-tile-inv .flap .digit-text {
+  font-family: 'Noto Sans Egyptian Hieroglyphs', serif !important;
+  color: #0e0000 !important;
+  text-shadow: none !important;
+}
+.flip-digit.glyph-tile-inv .bottom-half .digit-text {
+  font-family: 'Noto Sans Egyptian Hieroglyphs', serif !important;
+  color: #0e0000 !important;
+  text-shadow: none !important;
+}
+
+/* ── Per-glyph sizing (each hieroglyph fills its tile well) ── */
+.glyph-s29 .top-half .digit-text,
+.glyph-s29 .bottom-half .digit-text,
+.glyph-s29 .flap .digit-text { font-size: 3rem !important; }
+
+.glyph-z7 .top-half .digit-text,
+.glyph-z7 .bottom-half .digit-text,
+.glyph-z7 .flap .digit-text { font-size: 4.7rem !important; }
+
+.glyph-u29 .top-half .digit-text,
+.glyph-u29 .bottom-half .digit-text,
+.glyph-u29 .flap .digit-text { font-size: 3.5rem !important; }
+
+.glyph-g1 .top-half .digit-text,
+.glyph-g1 .bottom-half .digit-text,
+.glyph-g1 .flap .digit-text { font-size: 3.2rem !important; }
+
+.glyph-z5 .top-half .digit-text,
+.glyph-z5 .bottom-half .digit-text,
+.glyph-z5 .flap .digit-text { font-size: 2.5rem !important; }
+
+/* ── Fast flip variant (used during shuffle animations) ── */
+.flip-digit .flap.flipping-fast {
+  display: block;
+  animation: splitFlapFast 0.15s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+.flip-digit .flap.flipping-fast ~ .flap-shadow {
+  animation: flapShadowFast 0.15s ease-out forwards;
+}
+@keyframes splitFlapFast {
+  0%   { transform: rotateX(0deg); }
+  60%  { transform: rotateX(-100deg); }
+  80%  { transform: rotateX(-88deg); }
+  100% { transform: rotateX(-90deg); }
+}
+@keyframes flapShadowFast {
+  0%   { opacity: 0; }
+  50%  { opacity: 0.6; }
+  100% { opacity: 0; }
 }
 
 /* Timer controls row */
@@ -744,10 +782,11 @@ button, input { font-family: inherit; }
 }
 .key:active, .key.pressed {
   transform: translateY(2px); border-bottom-width: 1px;
-  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3), 0 0 6px rgba(0,204,0,0.4);
-  background: linear-gradient(175deg, #8a9070, #74785e 40%, #5e624a);
-  color: #fff; border-color: var(--green-dim);
+  background: linear-gradient(175deg, #666456, #565446 45%, #444236);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.55), inset 0 -1px 1px rgba(255,255,255,0.08), 0 0 1px rgba(0,0,0,0.8);
+  color: var(--key-text); border-color: var(--key-edge);
 }
+
 .key .key-main { font-size: 0.75rem; }
 .key .key-shift { font-size: 0.5rem; color: var(--key-text-dim); line-height: 1; }
 .key-w-1  { min-width: 29px; }
@@ -772,8 +811,9 @@ button, input { font-family: inherit; }
   color: var(--special-text); font-size: 0.54rem; letter-spacing: 0.5px;
 }
 .key-special:active, .key-special.pressed {
-  background: linear-gradient(175deg, #707860, #585c44 40%, #444832);
-  color: var(--green-bright);
+  background: linear-gradient(175deg, #565442, #464432 45%, #343224);
+  color: var(--special-text); border-color: var(--key-edge);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), inset 0 -1px 1px rgba(255,255,255,0.06), 0 0 1px rgba(0,0,0,0.8);
 }
 
 /* ═══════════════════════════════════════════
@@ -1123,7 +1163,14 @@ footer a:hover { color: var(--green); }
   .timer-housing { padding: 14px 16px 12px; }
   .timer-separator { width: 10px; }
   .monitor-screen { height: 280px; }
-  .keyboard-wrap { padding: 0 4px; }
+  .keyboard-wrap {
+    padding: 0 4px;
+    transform: scale(0.95);
+    transform-origin: top center;
+    width: 105.26%;
+    margin-left: -2.63%;
+    margin-bottom: -12px;
+  }
   .computer-case { padding: 18px 12px 0; max-width: 100%; }
   .computer-case .case-badge,
   .computer-case .case-model { font-size: 0.46rem; letter-spacing: 1.2px; }
@@ -1133,12 +1180,12 @@ footer a:hover { color: var(--green); }
   .key { min-width: calc((100vw - 40px) / 18); height: 28px; }
   .key .key-main { font-size: 0.65rem; }
   .key-w-1  { min-width: calc((100vw - 40px) / 18); }
-  .key-w-sp { min-width: 160px; }
-  .key-w-ret { min-width: 58px; }
-  .key-w-2h { min-width: 60px; }
-  .key-w-2  { min-width: 46px; }
-  .key-w-1h { min-width: 42px; }
-  .key-w-execute { min-width: 70px; }
+  .key-w-sp { min-width: 150px; }
+  .key-w-ret { min-width: 50px; }
+  .key-w-2h { min-width: 50px; }
+  .key-w-2  { min-width: 36px; }
+  .key-w-1h { min-width: 32px; }
+  .key-w-execute { min-width: 60px; }
   .key-w-space   { min-width: 200px; height: 26px; }
   .center-col { padding: 10px 6px 14px; }
   .menu-stations-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1148,13 +1195,34 @@ footer a:hover { color: var(--green); }
   .dharma-logo { width: 44px; height: 44px; }
   .site-title { font-size: 1.3rem; }
   .site-status { font-size: 0.62rem; }
+  /* Glyph sizing for smaller tiles */
+  .glyph-s29 .top-half .digit-text, .glyph-s29 .bottom-half .digit-text, .glyph-s29 .flap .digit-text { font-size: 2.2rem !important; }
+  .glyph-z7 .top-half .digit-text,  .glyph-z7 .bottom-half .digit-text,  .glyph-z7 .flap .digit-text  { font-size: 3.2rem !important; }
+  .glyph-u29 .top-half .digit-text, .glyph-u29 .bottom-half .digit-text, .glyph-u29 .flap .digit-text { font-size: 2.8rem !important; }
+  .glyph-g1 .top-half .digit-text,  .glyph-g1 .bottom-half .digit-text,  .glyph-g1 .flap .digit-text  { font-size: 2.4rem !important; }
+  .glyph-z5 .top-half .digit-text,  .glyph-z5 .bottom-half .digit-text,  .glyph-z5 .flap .digit-text  { font-size: 2.8rem !important; }
 }
 
 @media (max-width: 400px) {
   :root { --tile-w: 36px; --tile-h: 54px; --tile-fs: 3rem; }
+  .keyboard-wrap {
+    transform: scale(0.9);
+    transform-origin: top center;
+    width: 111.11%;
+    margin-left: -5.55%;
+    margin-bottom: -22px;
+  }
+  .key-special { font-size: 0.46rem; letter-spacing: 0; }
+  .key .key-main { font-size: 0.58rem; }
+  .key .key-shift { font-size: 0.42rem; }
+  .key-w-execute { min-width: 62px; }
   .key { min-width: calc((100vw - 30px) / 18); }
   .key-w-sp { min-width: 120px; }
-  .key-w-execute { min-width: 56px; }
   .key-w-space   { min-width: 150px; }
   .menu-stations-grid { grid-template-columns: repeat(2, 1fr); }
+  .glyph-s29 .top-half .digit-text, .glyph-s29 .bottom-half .digit-text, .glyph-s29 .flap .digit-text { font-size: 1.8rem !important; }
+  .glyph-z7 .top-half .digit-text,  .glyph-z7 .bottom-half .digit-text,  .glyph-z7 .flap .digit-text  { font-size: 2.5rem !important; }
+  .glyph-u29 .top-half .digit-text, .glyph-u29 .bottom-half .digit-text, .glyph-u29 .flap .digit-text { font-size: 2.2rem !important; }
+  .glyph-g1 .top-half .digit-text,  .glyph-g1 .bottom-half .digit-text,  .glyph-g1 .flap .digit-text  { font-size: 2rem !important; }
+  .glyph-z5 .top-half .digit-text,  .glyph-z5 .bottom-half .digit-text,  .glyph-z5 .flap .digit-text  { font-size: 2.2rem !important; }
 }

@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    THE SWAN STATION — script.js  v3
    DHARMA Initiative Computing System
    ============================================ */
@@ -424,6 +424,181 @@
     flapState[id.replace('fd-','')] = newChar;
   }
 
+  // ── SHUFFLE ENGINE (Deceleration Roulette) ─────────────────────────
+  // All tiles spin fast then independently decelerate, each locking at
+  // its own moment. Used for both reset-to-numbers and failure-to-glyphs.
+
+  const TILE_IDS   = ['fd-m1','fd-m2','fd-m3','fd-s1','fd-s2'];
+  const TILE_KEYS  = ['m1','m2','m3','s1','s2'];
+  const DIGIT_CHARS = '0123456789';
+  // Hieroglyph settle order (show-accurate): 4th → 5th → 2nd → 1st → 3rd
+  // As tile indices: s1=3, s2=4, m2=1, m1=0, m3=2
+  const GLYPH_ORDER  = [3, 4, 1, 0, 2];
+  // Real Gardiner signs: S29 cloth, Z7 spiral, U29 fire drill, G1 vulture, Z5 stick
+  const GLYPH_CHARS  = ['𓋴','𓍢','𓍘','𓄿','𓏱'];
+  // First 3 (minutes): red on dark.  Last 2 (seconds): black on red.
+  const GLYPH_TILE_CLASSES = ['glyph-tile','glyph-tile','glyph-tile','glyph-tile-inv','glyph-tile-inv'];
+  // Per-glyph sizing classes
+  const GLYPH_SIZE_CLASSES = ['glyph-s29','glyph-z7','glyph-u29','glyph-g1','glyph-z5'];
+
+  // Active shuffle state so we can cancel mid-flight.
+  let shuffleActive = false;
+
+  function randomDigitExcept(except) {
+    let d;
+    do { d = DIGIT_CHARS[Math.floor(Math.random() * 10)]; } while (d === except);
+    return d;
+  }
+
+  // Fast flip — same split-flap mechanic but uses the quicker CSS class.
+  function shuffleFlip(tile, oldChar, newChar) {
+    const topHalf    = tile.querySelector('.top-half .digit-text');
+    const bottomHalf = tile.querySelector('.bottom-half .digit-text');
+    const flap       = tile.querySelector('.flap');
+    const flapText   = flap.querySelector('.digit-text');
+
+    topHalf.textContent    = newChar;
+    bottomHalf.textContent = newChar;
+    flapText.textContent   = oldChar;
+
+    flap.classList.remove('flipping', 'flipping-fast');
+    void flap.offsetWidth;
+    flap.style.display = 'block';
+    flap.classList.add('flipping-fast');
+
+    setTimeout(() => {
+      flap.classList.remove('flipping-fast');
+      flap.style.display = 'none';
+    }, 170);
+  }
+
+  // Shuffle to target values with deceleration roulette.
+  // targets: array of 5 chars. duration: ms. onDone: callback.
+  function shuffleToValue(targets, duration, onDone) {
+    shuffleActive = true;
+    const tiles   = TILE_IDS.map(id => document.getElementById(id));
+    const current = TILE_KEYS.map(k => flapState[k]);
+    const settled = [false,false,false,false,false];
+
+    // Settle order for reset: left to right.
+    const settleOrder = [0, 1, 2, 3, 4];
+    const settleSpacing = duration * 0.12;
+    const settleTimes = [];
+    settleOrder.forEach((tileIdx, orderIdx) => {
+      settleTimes[tileIdx] = (duration * 0.45) + orderIdx * settleSpacing;
+    });
+
+    // Repeating shuffle sound.
+    const shuffleInterval = setInterval(() => playSample('shuffle'), 1000);
+    playSample('shuffle');
+
+    const startTime = Date.now();
+
+    tiles.forEach((tile, i) => {
+      let delay = 80;
+      function tick() {
+        if (!shuffleActive) return;
+        if (settled[i]) return;
+        const elapsed = Date.now() - startTime;
+
+        if (elapsed >= settleTimes[i]) {
+          // Final flip to target value (uses normal-speed flip for the landing).
+          shuffleFlip(tile, current[i], targets[i]);
+          current[i] = targets[i];
+          flapState[TILE_KEYS[i]] = targets[i];
+          settled[i] = true;
+          if (settled.every(Boolean)) {
+            clearInterval(shuffleInterval);
+            shuffleActive = false;
+            if (onDone) setTimeout(onDone, 200);
+          }
+          return;
+        }
+
+        const next = randomDigitExcept(current[i]);
+        shuffleFlip(tile, current[i], next);
+        current[i] = next;
+
+        const progress = elapsed / settleTimes[i];
+        delay = 80 + Math.pow(progress, 2.5) * 250;
+        setTimeout(tick, delay);
+      }
+      setTimeout(tick, Math.random() * 40);
+    });
+  }
+
+  // Shuffle to hieroglyphs with deceleration roulette.
+  // Each tile gets .glyph-tile class the moment it locks.
+  function shuffleToGlyphs(duration, onDone) {
+    shuffleActive = true;
+    const tiles   = TILE_IDS.map(id => document.getElementById(id));
+    const current = TILE_KEYS.map(k => flapState[k]);
+    const settled = [false,false,false,false,false];
+
+    // Settle timing spread across duration in GLYPH_ORDER.
+    const settleSpacing = (duration * 0.5) / (GLYPH_ORDER.length - 1);
+    const settleStart   = duration * 0.4;
+    const settleTimes   = [];
+    GLYPH_ORDER.forEach((tileIdx, orderIdx) => {
+      settleTimes[tileIdx] = settleStart + orderIdx * settleSpacing;
+    });
+
+    // Repeating shuffle sound.
+    const shuffleInterval = setInterval(() => playSample('shuffle'), 1000);
+    playSample('shuffle');
+
+    const startTime = Date.now();
+
+    tiles.forEach((tile, i) => {
+      let delay = 80;
+      function tick() {
+        if (!shuffleActive) return;
+        if (settled[i]) return;
+        const elapsed = Date.now() - startTime;
+
+        if (elapsed >= settleTimes[i]) {
+          // Mark this tile with its glyph color class and sizing class.
+          tile.classList.add(GLYPH_TILE_CLASSES[i], GLYPH_SIZE_CLASSES[i]);
+          shuffleFlip(tile, current[i], GLYPH_CHARS[i]);
+          current[i] = GLYPH_CHARS[i];
+          flapState[TILE_KEYS[i]] = GLYPH_CHARS[i];
+          settled[i] = true;
+          if (settled.every(Boolean)) {
+            clearInterval(shuffleInterval);
+            shuffleActive = false;
+            if (onDone) setTimeout(onDone, 200);
+          }
+          return;
+        }
+
+        const next = randomDigitExcept(current[i]);
+        shuffleFlip(tile, current[i], next);
+        current[i] = next;
+
+        const progress = elapsed / settleTimes[i];
+        delay = 80 + Math.pow(progress, 2.5) * 250;
+        setTimeout(tick, delay);
+      }
+      setTimeout(tick, Math.random() * 40);
+    });
+  }
+
+  // Cancel any in-flight shuffle (used when resetTimer is called during failure).
+  function cancelShuffle() {
+    shuffleActive = false;
+  }
+
+  // Remove per-tile glyph styling.
+  function clearGlyphTiles() {
+    TILE_IDS.forEach((id, i) => {
+      const tile = document.getElementById(id);
+      if (tile) {
+        tile.classList.remove('glyph-tile', 'glyph-tile-inv');
+        GLYPH_SIZE_CLASSES.forEach(c => tile.classList.remove(c));
+      }
+    });
+  }
+
   function renderTime(mins, secs) {
     const mm = String(Math.max(0,Math.min(999,mins))).padStart(3,'0');
     const ss = String(Math.max(0,Math.min(59,secs))).padStart(2,'0');
@@ -485,6 +660,7 @@
 
   function resetTimer(secs) {
     clearInterval(timerInterval); timerInterval = null;
+    cancelShuffle();
     // Cancel any in-flight failure-end stream
     if (typeof failureStreamTimeouts !== 'undefined') {
       failureStreamTimeouts.forEach(id => clearTimeout(id));
@@ -493,32 +669,48 @@
     stopAlarm(); isAlarm = false; isFailure = false;
     totalSeconds = secs !== undefined ? secs : totalSeconds;
     remaining = totalSeconds;
-    document.getElementById('flip-clock').classList.remove('timer-alarm','timer-glyph');
-    renderTimeDirect(Math.floor(remaining/60), remaining%60);
+    document.getElementById('flip-clock').classList.remove('timer-alarm');
+    clearGlyphTiles();
+
+    // Build target digits for the new time.
+    const mm = String(Math.floor(remaining / 60)).padStart(3, '0');
+    const ss = String(remaining % 60).padStart(2, '0');
+    const targets = [mm[0], mm[1], mm[2], ss[0], ss[1]];
+
     document.getElementById('timer-info').textContent =
       Math.floor(totalSeconds/60) + ':00 ' + (totalSeconds === DEFAULT_MINUTES*60 ? 'DEFAULT' : 'CUSTOM');
-    saveState();
-    startTimer();
+
+    // Deceleration roulette shuffle (~2 seconds), then start the timer.
+    shuffleToValue(targets, 2000, () => {
+      saveState();
+      startTimer();
+    });
   }
 
   // ── FAILURE SEQUENCE ──
   function triggerFailure() {
     isFailure = true; stopAlarm();
     const clock = document.getElementById('flip-clock');
-    clock.classList.remove('timer-alarm'); clock.classList.add('timer-glyph');
-    const glyphs = ['𓂀','𓆣','𓇯','𓏤','𓃒'];
-    ['m1','m2','m3','s1','s2'].forEach((k,i) => setTimeout(()=>flipDigit('fd-'+k, glyphs[i]), i*300));
+    clock.classList.remove('timer-alarm');
 
+    // Deceleration roulette to hieroglyphs (~5 seconds).
+    // Tiles settle in show-accurate order: s1 → s2 → m2 → m1 → m3.
+    shuffleToGlyphs(5000, () => {
+      // Glyphs are locked — proceed with failure overlay after a beat.
+    });
+
+    // Overlay + glitch + screen swap happen on a fixed timeline alongside the shuffle.
     const overlay = document.getElementById('failure-overlay');
-    overlay.classList.add('active');
-    setTimeout(()=>{ document.getElementById('monitor-screen').classList.add('glitch'); }, 600);
+    // Short delay before overlay so the shuffle is underway and dramatic.
+    setTimeout(() => { overlay.classList.add('active'); }, 2500);
+    setTimeout(() => { document.getElementById('monitor-screen').classList.add('glitch'); }, 3000);
     playFailure();
-    setTimeout(()=>{ setScreen('failure'); }, 1000);
-    setTimeout(()=>{
+    setTimeout(() => { setScreen('failure'); }, 4000);
+    setTimeout(() => {
       overlay.classList.remove('active');
       document.getElementById('monitor-screen').classList.remove('glitch');
       setScreen('failure-end');
-    }, 8500);
+    }, 11000);
   }
 
   // ── SCREEN CONTENT ──
@@ -617,7 +809,7 @@
 <span class="screen-line text-red">ELECTROMAGNETIC EVENT DETECTED</span>
 <span class="screen-line text-red">CONTAINMENT PROTOCOL BREACHED</span>
 <span class="screen-line"> </span>
-<span class="screen-line text-amber">𓂀  𓆣  𓇯  𓏤  𓃒</span>
+<span class="screen-line text-amber">𓋴  𓍢  𓍘  𓄿  𓏭</span>
 <span class="screen-line"> </span>
 <span class="screen-line text-red blink">SYSTEM FAILURE — SYSTEM FAILURE</span>`,
 
@@ -1127,6 +1319,11 @@
     // Only meaningful after failure, but harmless any other time.
     if (lower === 'reset' || lower === 'restart') {
        input.value = '';
+       if (!isFailure) {
+        playReject();
+        printResponse('<span class="text-red">&gt;: RESET DENIED. FOLLOW THE INSTRUCTIONS.</span>');
+        return;
+       }
        invalidAttempts = 0;
        playAccept();
        resetTimer(totalSeconds);
@@ -1283,7 +1480,6 @@
   function applySettings() {
     const v = parseInt(document.getElementById('settings-minutes').value);
     if (isNaN(v)||v<1||v>999) return;
-    playSample('shuffle');
     closeSettings(); resetTimer(v*60);
     printResponse(`<span class="text-amber">&gt;: TIMER SET TO ${v} MINUTES.</span>`);
   }
@@ -1311,7 +1507,19 @@
     setScreen('home');
     tickClock(); setInterval(tickClock, 15000);
     if (remaining > 0) startTimer();
-    else { isFailure = true; setScreen('failure-end'); }
+    else {
+      isFailure = true;
+      // Show glyphs with correct per-tile styling (no animation on cold start).
+      TILE_IDS.forEach((id, i) => {
+        const tile = document.getElementById(id);
+        if (tile) {
+          tile.classList.add(GLYPH_TILE_CLASSES[i], GLYPH_SIZE_CLASSES[i]);
+          tile.querySelectorAll('.digit-text').forEach(el => el.textContent = GLYPH_CHARS[i]);
+          flapState[TILE_KEYS[i]] = GLYPH_CHARS[i];
+        }
+      });
+      setScreen('failure-end');
+    }
 
     // First-click sound enable. Browsers block <audio>.play() until the user
     // interacts at least once; on first click we mark sound enabled and run
