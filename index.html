@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -153,28 +153,45 @@
         </div>
       </div>
 
-      <!-- CRT MONITOR -->
-      <div class="monitor-wrap">
-        <div class="monitor-outer">
-          <div class="monitor-inner-bezel">
-            <div class="monitor-screen" id="monitor-screen">
-              <div class="screen-scroll" id="screen-scroll">
-                <div class="screen-content" id="screen-content">
-                  <!-- Filled by JS -->
+      <!-- INTEGRATED COMPUTER STATION — monitor on top of case, keyboard in case -->
+      <div class="station-stack">
+
+        <!-- CRT MONITOR -->
+        <div class="monitor-wrap">
+          <div class="monitor-outer">
+            <div class="monitor-inner-bezel">
+              <div class="monitor-screen" id="monitor-screen">
+                <div class="screen-scroll" id="screen-scroll">
+                  <div class="screen-content" id="screen-content">
+                    <!-- Filled by JS -->
+                  </div>
+                  <!-- Input always lives here, below content -->
+                  <div id="screen-input-area"></div>
                 </div>
-                <!-- Input always lives here, below content -->
-                <div id="screen-input-area"></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- VIRTUAL KEYBOARD -->
-      <div class="keyboard-wrap" id="keyboard-wrap">
-        <div class="keyboard-chassis">
-          <div id="virtual-keyboard"></div>
+        <!-- COMPUTER CASE (Apple II+ chassis) -->
+        <div class="computer-case">
+          <div class="case-badge"><span class="swan-glyph"></span>DHARMA INITIATIVE</div>
+          <div class="case-model">MODEL II+ · STN.03</div>
+          <div class="case-vents">
+            <div class="case-vent-group"></div>
+            <div class="case-vent-group"></div>
+          </div>
+
+          <!-- VIRTUAL KEYBOARD (sits inside the case's keyboard well) -->
+          <div class="keyboard-well">
+            <div class="keyboard-wrap" id="keyboard-wrap">
+              <div class="keyboard-chassis">
+                <div id="virtual-keyboard"></div>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
     </main>

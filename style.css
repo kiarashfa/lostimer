@@ -20,6 +20,32 @@
   --font-mono:    'Share Tech Mono', 'Courier New', monospace;
   --font-vt:      'VT323', monospace;
 
+  /* ── CASE PALETTE (warm cream-beige — Apple II+ / Swan prop) ── */
+  --case-light:   #d4c4a0;
+  --case-mid:     #c8b89a;
+  --case-base:    #b8a882;
+  --case-dark:    #a09070;
+  --case-edge:    #6a5a3c;
+  --case-bezel:   #2a2010;
+
+  /* ── KEY PALETTE (cool gunmetal — the only gray surface) ──
+     Both regular and special keys are shades of gray and close enough
+     to read as one family. Special keys (ESC, SHIFT, CTRL, RETURN,
+     RESET, REPT, ←, →, EXECUTE) are slightly DARKER so they read as
+     a distinct subgroup. */
+  --key-light:    #7e7c6e;
+  --key-mid:      #6c6a5c;
+  --key-dark:     #58564a;
+  --key-edge:     #2a2820;
+  --key-shadow:   #1a1812;
+  --key-text:     #ece8d2;
+  --key-text-dim: rgba(245,240,220,0.55);
+
+  --special-light: #62604e;
+  --special-mid:   #4e4c3c;
+  --special-dark:  #3a3828;
+  --special-text:  #ece8d2;
+
   /* Timer tile sizes */
   --tile-w: 62px;
   --tile-h: 90px;
@@ -122,18 +148,6 @@ button, input { font-family: inherit; }
   overflow: hidden;
 }
 
-/* ── SIDEBAR (single, left) ── */
-
-
-
-
-
-
-
-
-
-
-
 
 /* ── CENTER COLUMN ── */
 .center-col {
@@ -145,6 +159,24 @@ button, input { font-family: inherit; }
   gap: 16px;
   min-width: 0;
   overflow-y: auto;
+}
+
+/* The monitor + computer case stack as one unified object (no gap).
+   center-col's gap still separates this stack from the flip-clock above. */
+.station-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 650px;
+}
+.station-stack .monitor-wrap {
+  position: relative;
+  z-index: 3;
+  margin-bottom: -2px;     /* monitor base sits flush on the case */
+}
+.station-stack .computer-case {
+  max-width: 620px;        /* slightly narrower than monitor → "sitting on top" */
 }
 
 /* ═══════════════════════════════════════════
@@ -323,7 +355,7 @@ button, input { font-family: inherit; }
 .monitor-wrap { width: 100%; max-width: 650px; }
 
 .monitor-outer {
-  background: linear-gradient(145deg, #d4c4a0, #c8b89a 30%, #b8a882 70%, #a09070);
+  background: linear-gradient(145deg, var(--case-light), var(--case-mid) 30%, var(--case-base) 70%, var(--case-dark));
   border-radius: 16px 16px 20px 20px;
   padding: 18px 22px 46px;
   box-shadow:
@@ -339,14 +371,14 @@ button, input { font-family: inherit; }
   color: rgba(80,60,30,0.65); letter-spacing: 2px; white-space: nowrap;
 }
 .monitor-inner-bezel {
-  background: #2a2010; border-radius: 8px; padding: 10px;
+  background: var(--case-bezel); border-radius: 8px; padding: 10px;
   box-shadow: inset 0 2px 12px rgba(0,0,0,0.9);
 }
 .monitor-screen {
   background: var(--green-screen);
   border-radius: 4px;
   /* Fixed height — user scrolls inside */
-  height: 320px;
+  height: 370px;
   padding: 13px 15px;
   position: relative; overflow: hidden;
   box-shadow: inset 0 0 40px rgba(0,200,0,0.05), inset 0 0 80px rgba(0,0,0,0.3);
@@ -368,7 +400,9 @@ button, input { font-family: inherit; }
   pointer-events: none; z-index: 4;
 }
 
-/* Scrollable inner area */
+/* Scrollable inner area — flex column so .screen-content can grow and
+   push #screen-input-area to the bottom on short pages, while still
+   allowing the whole stack to scroll on long pages. */
 .screen-scroll {
   height: 100%;
   overflow-y: auto;
@@ -377,6 +411,8 @@ button, input { font-family: inherit; }
   scrollbar-width: thin;
   scrollbar-color: var(--green-dim) transparent;
   padding-right: 4px;
+  display: flex;
+  flex-direction: column;
 }
 .screen-scroll::-webkit-scrollbar { width: 4px; }
 .screen-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -388,8 +424,16 @@ button, input { font-family: inherit; }
   color: var(--green);
   line-height: 1.65;
   text-shadow: 0 0 5px rgba(0,204,0,0.5);
-  min-height: 100%;
+  /* Grow to fill available space (pushing the terminal to the bottom on
+     short pages) but never shrink below natural content size (so long
+     pages still scroll normally). */
+  flex: 1 0 auto;
   display: flex; flex-direction: column;
+}
+
+/* Terminal input area sits at the bottom of the flex column and never shrinks */
+#screen-input-area {
+  flex: 0 0 auto;
 }
 
 .screen-line { display: block; white-space: normal; word-break: break-word; }
@@ -440,24 +484,6 @@ button, input { font-family: inherit; }
   min-width: 0; padding: 0;
 }
 #code-input::placeholder { color: var(--green-dim); font-size: 0.72rem; letter-spacing: 1px; }
-.btn-execute {
-  background: linear-gradient(180deg, #c8c0a8, #a09880);
-  border: 1px solid #5a5040; color: #1a1408;
-  font-family: var(--font-mono); font-size: 0.66rem;
-  padding: 5px 11px; cursor: pointer; letter-spacing: 2px;
-  font-weight: bold; border-radius: 3px;
-  box-shadow: 0 2px 0 #4a4030, inset 0 1px 0 rgba(255,255,255,0.4);
-  transition: transform 0.06s, box-shadow 0.06s; flex-shrink: 0;
-}
-.btn-execute:hover { filter: brightness(1.08); }
-.btn-execute:active { transform: translateY(1px); box-shadow: 0 1px 0 #4a4030; }
-.btn-kbd-toggle {
-  background: transparent; border: 1px solid var(--green-dim); color: var(--green-dim);
-  font-family: var(--font-mono); font-size: 0.62rem; padding: 4px 7px;
-  cursor: pointer; transition: all 0.15s; flex-shrink: 0;
-  margin-left: 8px;
-}
-.btn-kbd-toggle:hover { color: var(--green); border-color: var(--green); }
 #term-response { font-size: 0.8rem; min-height: 1.4em; margin-top: 5px; flex-shrink: 0; }
 
 /* Screen glitch */
@@ -473,19 +499,94 @@ button, input { font-family: inherit; }
 
 /* ═══════════════════════════════════════════
    VIRTUAL KEYBOARD — Apple II style
+   The keyboard now sits inside a computer case that the monitor rests
+   on. Visual stack:
+       [ monitor          ] (monitor-wrap, outside this block)
+       [ computer case    ] (.computer-case)
+         └─ keyboard well  (.keyboard-well, sunken recess)
+            └─ keyboard    (.keyboard-chassis — same case color)
 ═══════════════════════════════════════════ */
-.keyboard-wrap { width: 100%; max-width: 620px; display: none; }
-.keyboard-wrap.visible { display: block; }
+.keyboard-wrap { width: 100%; max-width: 620px; display: block; }
 
+/* The Apple II+ chassis box that the monitor sits on top of. */
+.computer-case {
+  width: 100%;
+  background: linear-gradient(180deg,
+    var(--case-mid) 0%,
+    var(--case-base) 35%,
+    var(--case-dark) 100%
+  );
+  border-radius: 0 0 6px 6px;
+  padding: 22px 28px 0;      /* bottom padding handled by keyboard-well */
+  position: relative;
+  z-index: 2;
+  box-shadow:
+    0 14px 30px rgba(0,0,0,0.85),
+    inset 0 3px 0 rgba(255,255,255,0.18),    /* highlight line where monitor meets case */
+    inset 0 -1px 0 rgba(0,0,0,0.35),
+    inset 4px 0 8px rgba(0,0,0,0.18),
+    inset -4px 0 8px rgba(0,0,0,0.18);
+}
+.case-badge {
+  position: absolute; top: 8px; left: 22px;
+  font-family: var(--font-mono); font-size: 0.55rem;
+  color: rgba(80,60,30,0.55); letter-spacing: 2px;
+}
+.case-badge .swan-glyph {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; background: rgba(80,60,30,0.35);
+  margin-right: 6px; vertical-align: middle;
+}
+.case-model {
+  position: absolute; top: 8px; right: 22px;
+  font-family: var(--font-mono); font-size: 0.5rem;
+  color: rgba(80,60,30,0.55); letter-spacing: 1.5px;
+}
+.case-vents {
+  position: absolute; left: 12px; right: 12px;
+  top: 50%; transform: translateY(-50%);
+  height: 22px; pointer-events: none;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.case-vent-group {
+  height: 100%; width: 24px;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(80,60,30,0.25) 0px,
+    rgba(80,60,30,0.25) 1px,
+    transparent 1px, transparent 4px
+  );
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(0,0,0,0.18);
+}
+
+/* Sunken recess in the case front where the keyboard lives. */
+.keyboard-well {
+  margin: 0 -2px;
+  background: linear-gradient(180deg,
+    rgba(0,0,0,0.18) 0%,
+    rgba(0,0,0,0.08) 40%,
+    transparent 100%
+  );
+  padding: 16px 18px 22px;
+  border-radius: 4px 4px 6px 6px;
+  box-shadow: inset 0 6px 14px rgba(0,0,0,0.45);
+  position: relative;
+}
+
+/* Keyboard chassis — SAME warm cream color as monitor + case, with a
+   small drop shadow so it visually lifts out of the well. Only the
+   keycaps themselves are gray. */
 .keyboard-chassis {
-  background: linear-gradient(175deg, #9a9080, #8a8070 30%, #706858);
-  border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(175deg, var(--case-light), var(--case-mid) 30%, var(--case-base) 70%, var(--case-dark));
+  border-radius: 6px 6px 10px 10px;
   padding: 12px 14px 16px;
   box-shadow:
-    0 6px 20px rgba(0,0,0,0.8),
-    inset 0 2px 4px rgba(255,255,255,0.2),
-    inset 0 -3px 6px rgba(0,0,0,0.4);
+    0 4px 12px rgba(0,0,0,0.55),
+    inset 0 2px 3px rgba(255,255,255,0.32),
+    inset 0 -2px 4px rgba(0,0,0,0.25);
   position: relative;
+  z-index: 2;
 }
 .keyboard-chassis::after {
   content: '● DHARMA INITIATIVE ●';
@@ -494,25 +595,28 @@ button, input { font-family: inherit; }
   color: rgba(30,20,10,0.45); letter-spacing: 2px; white-space: nowrap;
 }
 .key-row { display: flex; gap: 4px; margin-bottom: 4px; justify-content: center; }
+
+/* Regular keys — medium gunmetal gray. */
 .key {
-  background: linear-gradient(175deg, #c0b8a8, #b0a898 40%, #9a9080);
-  border: 1px solid #6a6050; border-bottom: 3px solid #4a4038;
-  border-radius: 3px; min-width: 34px; height: 34px;
+  background: linear-gradient(175deg, var(--key-light), var(--key-mid) 40%, var(--key-dark));
+  border: 1px solid var(--key-edge);
+  border-bottom: 3px solid var(--key-shadow);
+  border-radius: 3px; min-width: 29px; height: 34px;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   cursor: pointer; user-select: none;
-  font-family: var(--font-mono); font-size: 0.62rem; color: #1a1408; font-weight: bold;
+  font-family: var(--font-mono); font-size: 0.62rem; color: var(--key-text); font-weight: bold;
   position: relative; transition: all 0.06s; line-height: 1.1; text-align: center;
-  box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 1px 3px rgba(0,0,0,0.5);
+  box-shadow: inset 0 1px 2px rgba(245,240,220,0.18), 0 1px 3px rgba(0,0,0,0.6);
 }
 .key:active, .key.pressed {
   transform: translateY(2px); border-bottom-width: 1px;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.3), 0 0 6px rgba(0,204,0,0.4);
-  background: linear-gradient(175deg, #a0a870, #8a9060 40%, #707840);
-  color: #000; border-color: var(--green-dim);
+  background: linear-gradient(175deg, #8a9070, #74785e 40%, #5e624a);
+  color: #fff; border-color: var(--green-dim);
 }
 .key .key-main { font-size: 0.75rem; }
-.key .key-shift { font-size: 0.5rem; color: #4a3a20; line-height: 1; }
-.key-w-1  { min-width: 34px; }
+.key .key-shift { font-size: 0.5rem; color: var(--key-text-dim); line-height: 1; }
+.key-w-1  { min-width: 29px; }
 .key-w-1h { min-width: 52px; }
 .key-w-2  { min-width: 58px; }
 .key-w-2h { min-width: 76px; }
@@ -521,39 +625,21 @@ button, input { font-family: inherit; }
 .key-w-ret { min-width: 76px; }
 .key-w-execute { min-width: 96px; }
 .key-w-space   { min-width: 320px; height: 30px; }
-.key-special {
-  background: linear-gradient(175deg, #888070, #706858 40%, #504838);
-  color: #c8b888; font-size: 0.54rem; letter-spacing: 0.5px;
-}
-.key-special:active, .key-special.pressed { background: linear-gradient(175deg, #707860, #606848 40%, #404830); color: var(--green-bright); }
 
-/* ── EXECUTE — prominent red key in place of right SHIFT ── */
-.key-execute {
-  background: linear-gradient(175deg, #d83030, #b01818 45%, #801010);
-  border: 1px solid #4a0808;
-  border-bottom: 3px solid #380404;
-  color: #ffffff;
-  font-size: 0.7rem;
-  letter-spacing: 1.5px;
-  font-weight: bold;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-  box-shadow:
-    inset 0 1px 2px rgba(255,255,255,0.35),
-    inset 0 -2px 4px rgba(0,0,0,0.35),
-    0 1px 4px rgba(200,0,0,0.45),
-    0 0 10px rgba(220,30,30,0.25);
+/* Special keys (ESC, SHIFT, CTRL, RETURN, RESET, REPT, ←, →, EXECUTE) —
+   lighter tone of the same gunmetal family so they read as a distinct
+   group against the darker regular keys. */
+/* Special keys (ESC, SHIFT, CTRL, RETURN, RESET, REPT, ←, →, EXECUTE) —
+   a slightly darker tone of the same gunmetal family. Close enough to
+   regular keys to read as one keyboard, just darker enough to flag the
+   functional group. */
+.key-special {
+  background: linear-gradient(175deg, var(--special-light), var(--special-mid) 40%, var(--special-dark));
+  color: var(--special-text); font-size: 0.54rem; letter-spacing: 0.5px;
 }
-.key-execute .key-main { font-size: 0.7rem; color: #ffffff; }
-.key-execute:hover { filter: brightness(1.1); }
-.key-execute:active, .key-execute.pressed {
-  background: linear-gradient(175deg, #a01818, #800808 45%, #500404);
-  color: #ffdada;
-  border-color: #2a0202;
-  box-shadow:
-    inset 0 1px 3px rgba(0,0,0,0.5),
-    0 0 18px rgba(255,40,40,0.7);
-  transform: translateY(2px);
-  border-bottom-width: 1px;
+.key-special:active, .key-special.pressed {
+  background: linear-gradient(175deg, #707860, #585c44 40%, #444832);
+  color: var(--green-bright);
 }
 
 /* ═══════════════════════════════════════════
@@ -903,9 +989,16 @@ footer a:hover { color: var(--green); }
   .timer-housing { padding: 14px 16px 12px; }
   .timer-separator { width: 10px; }
   .monitor-screen { height: 280px; }
-  .keyboard-wrap { display: block !important; }
+  .keyboard-wrap { padding: 0 4px; }
+  .computer-case { padding: 18px 12px 0; max-width: 100%; }
+  .computer-case .case-badge,
+  .computer-case .case-model { font-size: 0.46rem; letter-spacing: 1.2px; }
+  .computer-case .case-vents { display: none; }   /* skip the decorative vents on small screens */
+  .keyboard-well { padding: 10px 8px 14px; }
+  .station-stack .computer-case { max-width: 100%; }
   .key { min-width: calc((100vw - 40px) / 18); height: 28px; }
   .key .key-main { font-size: 0.65rem; }
+  .key-w-1  { min-width: calc((100vw - 40px) / 18); }
   .key-w-sp { min-width: 160px; }
   .key-w-ret { min-width: 58px; }
   .key-w-2h { min-width: 60px; }
@@ -913,7 +1006,6 @@ footer a:hover { color: var(--green); }
   .key-w-1h { min-width: 42px; }
   .key-w-execute { min-width: 70px; }
   .key-w-space   { min-width: 200px; height: 26px; }
-  .btn-kbd-toggle { display: none; }
   .center-col { padding: 10px 6px 14px; }
   .menu-stations-grid { grid-template-columns: repeat(3, 1fr); }
   .top-bar-center { position: static; transform: none; }

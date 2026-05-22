@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    THE SWAN STATION — script.js  v3
    DHARMA Initiative Computing System
    ============================================ */
@@ -52,6 +52,7 @@
     sysfail:  { src: 'soundfx/sysfail.mp3',  vol: 0.90, pool: 1 },
     gear:     { src: 'soundfx/gear.mp3',     vol: 0.95, pool: 1 },
     wrong:    { src: 'soundfx/wrong.mp3',    vol: 0.75, pool: 2 },
+    transm:   { src: 'soundfx/transm.mp3',   vol: 0.55, pool: 6 },
   };
   const samples = {};       // name -> { pool: [Audio,...], idx, vol }
 
@@ -245,6 +246,7 @@
       scrollEl: null,
       tickSound: false,
       tickEvery: 3,            // play tick sample every Nth char
+      tickSampleName: 'keyboard',
       onComplete: null,
     }, options || {});
 
@@ -332,7 +334,7 @@
           charsSinceTick++;
           if (charsSinceTick >= opts.tickEvery) {
             charsSinceTick = 0;
-            playSample('keyboard');
+            playSample(opts.tickSampleName);
           }
         }
 
@@ -350,7 +352,7 @@
 
   // Presets — pass any of these names to setScreen via SCREEN_MODES.
   typewriter.modes = {
-    type:   { speed: 40, jitter: 15, punctuationPause: true,  showCursor: true,  tickSound: true,  tickEvery: 6 },
+    type:   { speed: 40, jitter: 15, punctuationPause: true,  showCursor: true,  tickSound: true,  tickEvery: 1 },
     stream: { speed: 10, jitter: 0,  punctuationPause: false, showCursor: true,  tickSound: false                 },
     fast:   { speed: 4,  jitter: 0,  punctuationPause: false, showCursor: true,  tickSound: false                 },
     still:  { speed: 0,  jitter: 0,  punctuationPause: false, showCursor: false, tickSound: false                 },
@@ -516,7 +518,6 @@
 
     communication: () => `
 <span class="screen-line text-amber">// COMMUNICATION LOG — STATION 3 //</span>
-<span class="screen-line">&nbsp;</span>
 <span class="screen-line text-dim">─────────────────────────────────────</span>
 <span class="screen-line"> </span>
 <span class="screen-line"><span class="text-dim">[DAY 0001]</span> Kelvin: A new partner. Brother, you'll do.</span>
@@ -592,7 +593,7 @@
 
     failure: () => `
 <span class="screen-line text-red blink">████ SYSTEM FAILURE ████</span>
-<span class="screen-line"> </span>
+<span class="screen-line">&nbsp;</span>
 <span class="screen-line text-red">ELECTROMAGNETIC EVENT DETECTED</span>
 <span class="screen-line text-red">CONTAINMENT PROTOCOL BREACHED</span>
 <span class="screen-line"> </span>
@@ -602,7 +603,6 @@
 
     about: () => `
 <span class="screen-line text-amber">// ABOUT THIS PROJECT //</span>
-<span class="screen-line text-dim">─────────────────────────────────────</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line">The Swan Station is a fan tribute to ABC's <span class="text-amber">LOST</span> (2004–2010) and a working 108-minute countdown timer. Push the button. Or don't.</span>
 <span class="screen-line">&nbsp;</span>
@@ -636,13 +636,11 @@
     hello: () => `
 <span class="screen-line text-amber">// INCOMING TRANSMISSION //</span>
 <span class="screen-line text-dim">─────────────────────────────────────</span>
-<span class="screen-line">&nbsp;</span>
 <span class="screen-line"><span class="text-dim">&gt;</span> Hello. Who is this?</span>
 <span class="screen-line"> </span>`,
 
     lockout: () => `
 <span class="screen-line text-red blink">⚠ WARNING — STATION 3 PROTOCOL ⚠</span>
-<span class="screen-line text-dim">─────────────────────────────────────</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line">Do <span class="text-red">NOT</span> attempt to use the computer for anything else other than entering the code. This is its <span class="text-amber">ONLY</span> function.</span>
 <span class="screen-line">&nbsp;</span>
@@ -650,7 +648,7 @@
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line">This is <span class="text-red">strictly forbidden</span>. Attempting to use the computer in this manner will compromise the integrity of the project and, worse, could lead to <span class="text-red">another incident</span>.</span>
 <span class="screen-line">&nbsp;</span>
-<span class="screen-line">I repeat — <span class="text-red blink">DO NOT</span> use the computer for anything other than entering the code.</span>
+<span class="screen-line">I repeat — <span class="text-red">DO NOT</span> use the computer for anything other than entering the code.</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line text-amber">— DHARMA INITIATIVE</span>
 <span class="screen-line"> </span>`,
@@ -663,7 +661,7 @@
       <span class="input-prompt">&gt;:</span> <input type="text" id="code-input"
         placeholder=""
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-        maxlength="40"><button class="btn-kbd-toggle" id="btn-kbd-toggle">[KBD]</button><button class="btn-execute" id="btn-execute">EXECUTE</button>
+        maxlength="40">
     </div>
     <div id="term-response"></div>`;
   }
@@ -817,7 +815,23 @@
   // Append a chat exchange to the screen content. `userText` is what the
   // user typed (appears instantly); `replyHtml` is the system's response
   // (typed character-by-character).
-  function appendChat(userText, replyHtml) {
+  //
+  // Options:
+  //   instant : render reply instantly with no typing animation or sound
+  //             (used for system status messages like "[NO RESPONSE]")
+  //   slow    : type the reply at a noticeably slower pace (used for the
+  //             final cut-off line where the transmission falters)
+  //   delay   : milliseconds to wait before the reply appears. The user
+  //             line is appended immediately, but the reply (spacer +
+  //             text + spacer) only renders after this delay. While we
+  //             wait, chatActive is forced off so the user can't fire
+  //             another message into a half-rendered exchange. The
+  //             caller's intended chatActive state is restored when the
+  //             delay elapses (unless `lockChatAfter` is also passed).
+  //   lockChatAfter : if true, chatActive stays false after the reply
+  //             renders (used for the final cut-off line).
+  function appendChat(userText, replyHtml, replyOpts) {
+    replyOpts = replyOpts || {};
     const content = document.getElementById('screen-content');
     if (!content) return;
     // If a typewriter is still running (e.g. the intro line hasn't
@@ -830,7 +844,24 @@
     userLine.innerHTML = `<span class="screen-prompt">&gt;:</span> ${escapeHtml(userText)}`;
     content.appendChild(userLine);
 
-    if (replyHtml) {
+    // Scroll so the user's line is visible while they wait for a reply.
+    const scrAfterUser = document.getElementById('screen-scroll');
+    if (scrAfterUser) setTimeout(() => scrAfterUser.scrollTop = scrAfterUser.scrollHeight, 30);
+
+    if (!replyHtml) return;
+
+    // Lock chat input while the reply is pending so a fast typist can't
+    // send another message before this exchange finishes.
+    const wasChatActive = chatActive;
+    chatActive = false;
+    const delay = replyOpts.delay != null ? replyOpts.delay : 0;
+
+    const renderReply = () => {
+      // Only restore chatActive if the caller wants the session to
+      // continue. The final cut-off line passes lockChatAfter to keep
+      // the chat closed during the dramatic 5s pause.
+      if (!replyOpts.lockChatAfter) chatActive = wasChatActive;
+
       const spacer = document.createElement('span');
       spacer.className = 'screen-line';
       spacer.innerHTML = '&nbsp;';
@@ -850,12 +881,34 @@
 
       const scr = document.getElementById('screen-scroll');
       const target = reply.querySelector('.tw-target');
-      typewriter(target, replyHtml, Object.assign({}, typewriter.modes.type, { scrollEl: scr }));
-    }
 
-    // Scroll to bottom (also done per-char by typewriter)
-    const scr = document.getElementById('screen-scroll');
-    if (scr) setTimeout(() => scr.scrollTop = scr.scrollHeight, 30);
+      if (replyOpts.instant) {
+        // System status message — render immediately, no cursor, no sound.
+        target.innerHTML = replyHtml;
+      } else if (replyOpts.slow) {
+        // Faltering transmission — slower pace, more jitter, longer pauses.
+        typewriter(target, replyHtml, Object.assign({}, typewriter.modes.type, {
+          speed: 120,
+          jitter: 30,
+          tickSampleName: 'transm',
+          scrollEl: scr,
+        }));
+      } else {
+        // Normal chat reply — uses transmission tick sound.
+        typewriter(target, replyHtml, Object.assign({}, typewriter.modes.type, {
+          tickSampleName: 'transm',
+          scrollEl: scr,
+        }));
+      }
+
+      if (scr) setTimeout(() => scr.scrollTop = scr.scrollHeight, 30);
+    };
+
+    if (delay > 0) {
+      setTimeout(renderReply, delay);
+    } else {
+      renderReply();
+    }
   }
 
   function escapeHtml(s) {
@@ -864,23 +917,24 @@
     ));
   }
 
-  // Returns true if the normalized reply matches step 0 (introducing a name).
-  // Accepts: "this is X", "this is X who is this", "i am X", "my name is X".
-  // X must be at least one non-empty word.
+// Returns true if the normalized reply identifies the speaker as Michael.
+// Accepts variants but any other name (e.g. "i am jack") will NOT match.
   function matchIntroReply(n) {
     if (!n) return false;
-    // "this is <name>" (optionally followed by anything)
-    if (/^this is [a-z0-9]+/.test(n)) return true;
-    // "i am <name>"
-    if (/^i am [a-z0-9]+/.test(n)) return true;
-    if (/^i m [a-z0-9]+/.test(n)) return true;
-    if (/^im [a-z0-9]+/.test(n)) return true;
-    // "it is <name>"
-    if (/^it is [a-z0-9]+/.test(n)) return true;
-    if (/^it s [a-z0-9]+/.test(n)) return true;
-    if (/^its [a-z0-9]+/.test(n)) return true;
-    // "my name is <name>"
-    if (/^my name is [a-z0-9]+/.test(n)) return true;
+    // "this is michael" (optionally followed by anything)
+    if (/^this is michael\b/.test(n)) return true;
+    // "i am michael" / "i m michael" / "im michael"
+    if (/^i am michael\b/.test(n)) return true;
+    if (/^i m michael\b/.test(n)) return true;
+    if (/^im michael\b/.test(n)) return true;
+    // "it is michael" / "it s michael" / "its michael"
+    if (/^it is michael\b/.test(n)) return true;
+    if (/^it s michael\b/.test(n)) return true;
+    if (/^its michael\b/.test(n)) return true;
+    // "my name is michael"
+    if (/^my name is michael\b/.test(n)) return true;
+    // Bare "michael" alone is also fine
+    if (/^michael\b/.test(n)) return true;
     return false;
   }
 
@@ -920,40 +974,47 @@
 
     if (chatStep === 0) {
       if (matchIntroReply(n)) {
-        appendChat(raw, 'Dad?');
+        // Reflex — the voice on the other end answers almost immediately.
+        appendChat(raw, 'Dad? is that you?', { slow: true, delay: 1200 });
         chatStep = 1;
       } else {
-        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>');
+        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>', { instant: true, delay: 2200 });
       }
       return true;
     }
 
     if (chatStep === 1) {
       if (matchDadReply(n)) {
-        appendChat(raw, 'Yes.<br>Are you alone?');
+        // Processing the moment — a longer beat before he asks.
+        appendChat(raw, 'Are you alone?', { slow: true, delay: 1900 });
         chatStep = 2;
       } else {
-        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>');
+        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>', { instant: true, delay: 2200 });
       }
       return true;
     }
 
     if (chatStep === 2) {
       if (matchAloneReply(n)) {
-        appendChat(raw, "Can't talk long. They are coming back soon...");
+        // Medium pause — he's looking over his shoulder.
+        appendChat(raw, "Can't talk long. They are coming back soon...", { slow: true, delay: 2200 });
         chatStep = 3;
       } else {
-        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>');
+        appendChat(raw, '<span class="text-dim">[NO RESPONSE]</span>', { instant: true, delay: 2200 });
       }
       return true;
     }
 
     if (chatStep === 3) {
       // Any reply triggers the final cut-off line, then auto-returns home.
-      appendChat(raw, '<span class="text-red">You need to com</span>');
+      // Short delay — urgency. lockChatAfter keeps chat closed during the
+      // dramatic 5s pause before we send the user home.
+      appendChat(raw, '<span class="text-red">You need to com</span>', {
+        slow: true,
+        delay: 600,
+        lockChatAfter: true,
+      });
       chatStep = 4;
-      // Disable further chat input until auto-return.
-      chatActive = false;
       chatTimeoutId = setTimeout(() => {
         endChat();
         setScreen('home');
@@ -968,8 +1029,6 @@
   // Lines for the failure-end sequence. [delayBefore_ms, html]
   const FAILURE_END_LINES = [
     [0,    `<span class="screen-line text-dim">... ... ...</span>`],
-    [0,    `<span class="screen-line text-dim">... ... ...</span>`],
-    [0,    `<span class="screen-line text-dim">... ... ...</span>`],
     [800,  `<span class="screen-line"> </span>`],
     [400,  `<span class="screen-line text-red">TIMER EXPIRED.</span>`],
     [500,  `<span class="screen-line">The button was not pushed.</span>`],
@@ -978,21 +1037,19 @@
     [1100, `<span class="screen-line"> </span>`],
     [200,  `<span class="screen-line">Beneath the floor... the anomaly stirs.</span>`],
     [900,  `<span class="screen-line">A hum. Low. Then louder. Then everywhere.</span>`],
-    [1300, `<span class="screen-line"> </span>`],
-    [200,  `<span class="screen-line text-dim">Desmond reaches into a locker with the key.</span>`],
     [1500, `<span class="screen-line"> </span>`],
+    [0,    `<span class="screen-line">&nbsp;</span>`],
+    [200,  `<span class="screen-line text-red">[ FAILSAFE ENGAGED by Desmond ]</span>`],
+    [1800, `<span class="screen-line"> </span>`],
     [400,  `<span class="screen-line text-amber">"I'll see you in another life, brother."</span>`],
     [1800, `<span class="screen-line"> </span>`],
-    [200,  `<span class="screen-line text-red">[ FAILSAFE ENGAGED ]</span>`],
+    [0,    `<span class="screen-line">&nbsp;</span>`],
     [400,  `<span class="screen-line text-red blink">█ █ █ DISCHARGE █ █ █</span>`],
-    [1400, `<span class="screen-line"> </span>`],
-    [300,  `<span class="screen-line text-dim">The sky turns violet. The island holds its breath.</span>`],
-    [2200, `<span class="screen-line"> </span>`],
+    [9200, `<span class="screen-line"> </span>`],
     [0,    `<span class="screen-line">&nbsp;</span>`],
     [0,    `<span class="screen-line">&nbsp;</span>`],
-    [200,  `<span class="screen-line">You failed!</span>`],
     [1400, `<span class="screen-line"> </span>`],
-    [300,  `<span class="screen-line text-amber">But the island isn't done with you yet.</span>`],
+    [300,  `<span class="screen-line text-amber">You failed, but the island isn't done with you yet.</span>`],
     [700,  `<span class="screen-line text-amber">We have to go back.</span>`],
     [800,  `<span class="screen-line">&nbsp;</span>`],
     [400,  `<span class="screen-line">Type <span class="text-amber" style="font-weight:bold">reset</span> to try again,</span>`],
@@ -1116,11 +1173,11 @@
      {l:')',s:'9',k:'9'},{l:'',s:'0',k:'0'},{l:'*',s:':',k:':'},{l:'',s:'=',k:'='},
      {l:'RESET',k:'Escape',c:'key-special key-w-1h'}],
 
-    // Row 2: ESC, QWERTYUIOP, @, REPT, RETURN
+    // Row 2: ESC, QWERTYUIOP, @, RPT, RETURN
     [{l:'ESC',k:'Escape',c:'key-special key-w-1'},
      {l:'Q',k:'q'},{l:'W',k:'w'},{l:'E',k:'e'},{l:'R',k:'r'},{l:'T',k:'t'},
      {l:'Y',k:'y'},{l:'U',k:'u'},{l:'I',k:'i'},{l:'O',k:'o'},{l:'P',k:'p'},
-     {l:'@',k:'@'},{l:'REPT',k:'Repeat',c:'key-special'},
+     {l:'@',k:'@'},{l:'RPT',k:'Repeat',c:'key-special'},
      {l:'RETURN',k:'Enter',c:'key-special key-w-1h'}],
 
     // Row 3: CTRL, ASDFGHJKL, ;+, '", ←, →
@@ -1130,12 +1187,12 @@
      {l:'+',s:';',k:';'},{l:'"',s:"'",k:"'"},
      {l:'←',k:'ArrowLeft',c:'key-special'},{l:'→',k:'ArrowRight',c:'key-special'}],
 
-    // Row 4: SHIFT, ZXCVBNM, ,< .> /?  + big red EXECUTE replacing right SHIFT
+    // Row 4: SHIFT, ZXCVBNM, ,< .> /?  + EXECUTE in place of right SHIFT
     [{l:'SHIFT',k:'Shift',c:'key-special key-w-1h'},
      {l:'Z',k:'z'},{l:'X',k:'x'},{l:'C',k:'c'},{l:'V',k:'v'},{l:'B',k:'b'},
      {l:'N',k:'n'},{l:'M',k:'m'},
      {l:'<',s:',',k:','},{l:'>',s:'.',k:'.'},{l:'?',s:'/',k:'/'},
-     {l:'EXECUTE',k:'Enter',c:'key-execute key-w-execute'}],
+     {l:'EXECUTE',k:'Enter',c:'key-special key-w-execute'}],
 
     // Row 5: spacebar only (thick, centred)
     [{l:'',k:' ',c:'key-w-space'}],
@@ -1285,22 +1342,9 @@
         }
       }
 
-      // Execute button
-      if (t.id === 'btn-execute' || t.closest('#btn-execute')) { submitInput(); return; }
-
       // Orientation EXIT button
       if (t.id === 'orient-exit-btn' || t.closest('#orient-exit-btn')) {
         setScreen('home');
-        return;
-      }
-
-      // KBD toggle
-      if (t.id === 'btn-kbd-toggle' || t.closest('#btn-kbd-toggle')) {
-        const kw = document.querySelector('.keyboard-wrap');
-        kw.classList.toggle('visible');
-        const btn = document.getElementById('btn-kbd-toggle');
-        if (btn) btn.textContent = kw.classList.contains('visible') ? '[KBD ×]' : '[KBD]';
-        const inp = document.getElementById('code-input'); if (inp) inp.focus();
         return;
       }
 
