@@ -1,5 +1,5 @@
 ﻿/* ============================================
-   THE SWAN STATION — script.js  v3
+   THE SWAN STATION — script.js  v8.1
    DHARMA Initiative Computing System
    ============================================ */
 (function() {
@@ -15,12 +15,10 @@
   let totalSeconds   = DEFAULT_MINUTES * 60;
   let remaining      = totalSeconds;
   let isRunning      = false;
-  let isAlarm        = false;
   let isFailure      = false;
   let activeNav      = 'home';
   let soundEnabled   = false;
   let timerInterval  = null;
-  let alarmInterval  = null;       // legacy (kept so existing refs don't crash)
   let beepInterval   = null;       // plays beep.mp3 every 2s when remaining <= 4:00
   let alarmLoopInterval = null;    // plays alarm.mp3 every 1.5s when remaining <= 1:00
   let alarmLoopRate     = 0;       // current alarm interval in ms (0 = not running)
@@ -30,7 +28,13 @@
 
   // ── CHAT STATE (Michael/Walt "hello" sequence) ──
   let chatActive = false;
-  let chatStep   = 0;   // 0 = waiting for "this is X" reply, 1 = "dad?", 2 = "are you alone?", 3 = final any-reply
+  // Chat step transitions:
+  //   0 = waiting for intro reply ("this is michael", "michael", etc.)
+  //   1 = waiting for "dad?" reply (yes / son / walt / "are you ok")
+  //   2 = waiting for "are you alone?" reply (yes / yeah / sure / "i am")
+  //   3 = any reply triggers the cut-off line ("You need to com…")
+  //   4 = locked; waiting out the 5s pause before auto-returning to home
+  let chatStep   = 0;
   let chatTimeoutId = null;
 
   // ── INVALID INPUT TRACKING ──
@@ -82,13 +86,6 @@
     } catch (e) { /* swallow */ }
   }
 
-  // Compatibility wrappers (called from existing code paths) ──
-  // tick.mp3 is driven by the timer interval (once per second), NOT by
-  // each flip-digit animation, so playTick() is intentionally a no-op now.
-  function playTick()   { /* handled by 1s timer loop */ }
-  function playAccept() { playSample('reset'); }
-  function playReject() { playSample('wrong'); }
-
   // ── Beep / Alarm loops ─────────────────────────────────────────────
   // Mutually exclusive: when alarm kicks in (≤1:00), beep stops.
   function startBeepLoop() {
@@ -118,14 +115,15 @@
     if (alarmLoopInterval) { clearInterval(alarmLoopInterval); alarmLoopInterval = null; }
     alarmLoopRate = 0;
   }
-  // Legacy names — kept so callers (resetTimer, triggerFailure) keep working.
-  function startAlarm() { /* loops are now driven by remaining-time checks in updateAudioLoops */ }
-  function stopAlarm()  { stopBeepLoop(); stopAlarmLoop(); }
+  // Convenience for callers that need to stop everything (resetTimer, triggerFailure).
+  function stopAlarm() { stopBeepLoop(); stopAlarmLoop(); }
 
   // Called every second from the timer; picks the right loop for current time.
   function updateAudioLoops() {
     if (isFailure || remaining <= 0) {
-      stopBeepLoop(); stopAlarmLoop(); return;
+      stopBeepLoop();
+      stopAlarmLoop();
+      return;
     }
     if (remaining <= 10) {
       stopBeepLoop();
@@ -137,7 +135,8 @@
       stopAlarmLoop();
       startBeepLoop();
     } else {
-      stopBeepLoop(); stopAlarmLoop();
+      stopBeepLoop();
+      stopAlarmLoop();
     }
   }
 
@@ -146,8 +145,8 @@
     // Play sysfail.mp3 three times, spaced so each clip can finish.
     // sysfail.mp3 is ~0.5s; 1.2s spacing gives a clear, dramatic cadence.
     playSample('sysfail');
-    setTimeout(() => playSample('sysfail'), 1200);
-    setTimeout(() => playSample('sysfail'), 2400);
+    setTimeout(() => playSample('sysfail'), 3200);
+    setTimeout(() => playSample('sysfail'), 6400);
   }
   // ─────────────────────────────────────────────────────────────────────
 
@@ -420,7 +419,6 @@
       flap.style.display = 'none';
     }, 500);
 
-    playTick();
     flapState[id.replace('fd-','')] = newChar;
   }
 
@@ -607,11 +605,11 @@
       if (flapState[k] !== v) flipDigit('fd-'+k, v);
     });
 
-    // Alarm at 4:00
+    // Alarm visual cue at 4:00 — red pulse on the housing.
+    // (Audio cues are driven by updateAudioLoops on each timer tick.)
     const clock = document.getElementById('flip-clock');
     if (remaining <= WARN_AT && remaining > 0 && !isFailure) {
       clock.classList.add('timer-alarm');
-      if (!isAlarm) { isAlarm = true; startAlarm(); }
     }
   }
 
@@ -659,14 +657,16 @@
   }
 
   function resetTimer(secs) {
-    clearInterval(timerInterval); timerInterval = null;
+    clearInterval(timerInterval);
+    timerInterval = null;
     cancelShuffle();
     // Cancel any in-flight failure-end stream
     if (typeof failureStreamTimeouts !== 'undefined') {
       failureStreamTimeouts.forEach(id => clearTimeout(id));
       failureStreamTimeouts = [];
     }
-    stopAlarm(); isAlarm = false; isFailure = false;
+    stopAlarm();
+    isFailure = false;
     totalSeconds = secs !== undefined ? secs : totalSeconds;
     remaining = totalSeconds;
     document.getElementById('flip-clock').classList.remove('timer-alarm');
@@ -689,15 +689,16 @@
 
   // ── FAILURE SEQUENCE ──
   function triggerFailure() {
-    isFailure = true; stopAlarm();
+    isFailure = true;
+    stopAlarm();
     const clock = document.getElementById('flip-clock');
     clock.classList.remove('timer-alarm');
 
     // Deceleration roulette to hieroglyphs (~5 seconds).
     // Tiles settle in show-accurate order: s1 → s2 → m2 → m1 → m3.
-    shuffleToGlyphs(5000, () => {
-      // Glyphs are locked — proceed with failure overlay after a beat.
-    });
+    // Glyphs lock silently in the background; the failure overlay timeline
+    // below runs in parallel.
+    shuffleToGlyphs(5000);
 
     // Overlay + glitch + screen swap happen on a fixed timeline alongside the shuffle.
     const overlay = document.getElementById('failure-overlay');
@@ -809,7 +810,7 @@
 <span class="screen-line text-red">ELECTROMAGNETIC EVENT DETECTED</span>
 <span class="screen-line text-red">CONTAINMENT PROTOCOL BREACHED</span>
 <span class="screen-line"> </span>
-<span class="screen-line text-amber">𓋴  𓍢  𓍘  𓄿  𓏭</span>
+<span class="screen-line text-amber">𓋴  𓍢  𓍘  𓄿  𓏱</span>
 <span class="screen-line"> </span>
 <span class="screen-line text-red blink">SYSTEM FAILURE — SYSTEM FAILURE</span>`,
 
@@ -867,11 +868,11 @@
   };
 
   function termInputHTML() {
-    // The prompt + cursor + input are one unified row.
-    // The cursor blinks until the user starts typing (hidden via CSS focus trick).
-    return `<div class="term-input-row" id="term-input-row">
+    // The prompt and the input live in one unified row. The native browser
+    // caret (styled via #code-input { caret-color: var(--green); }) acts as
+    // the visible cursor while the user types.
+    return `<div class="term-input-row">
       <span class="input-prompt">&gt;:</span> <input type="text" id="code-input"
-        placeholder=""
         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
         maxlength="40">
     </div>
@@ -996,13 +997,12 @@
   // ── CODE / COMMAND INPUT ──
   const COMMANDS = {
     'home': 'home', 'h': 'home',
-    'communication': 'communication', 'communications': 'communication', 'comms': 'communication',
+    'communication': 'communication', 'communications': 'communication', 'comms': 'communication', 'comm': 'communication',
     'instructions': 'instructions', 'instr': 'instructions', 'i': 'instructions', 'instruction': 'instructions',
     'orientation': 'orientation', 'orient': 'orientation', 'video': 'orientation', 'o': 'orientation',
     'faq': 'faq', 'help': 'faq', 'help me': 'faq',
     'about': 'about',
     'hello': 'hello', 'hi': 'hello',
-    'comm': 'communication', 'communication': 'communication', 'comms': 'communication',
   };
 
   function normalizeCode(str) {
@@ -1318,15 +1318,15 @@
     // "reset" command — restart the system using the last-set duration.
     // Only meaningful after failure, but harmless any other time.
     if (lower === 'reset' || lower === 'restart') {
-       input.value = '';
-       if (!isFailure) {
-        playReject();
+      input.value = '';
+      if (!isFailure) {
+        playSample('wrong');
         printResponse('<span class="text-red">&gt;: RESET DENIED. FOLLOW THE INSTRUCTIONS.</span>');
         return;
-       }
-       invalidAttempts = 0;
-       playAccept();
-       resetTimer(totalSeconds);
+      }
+      invalidAttempts = 0;
+      playSample('reset');
+      resetTimer(totalSeconds);
       setScreen('home');
       printResponse('<span class="text-amber">&gt;: SYSTEM RESTARTED. NAMASTE.</span>');
       return;
@@ -1351,23 +1351,23 @@
       // count as an "invalid command" attempt — it's the right code, wrong
       // time).
       if (remaining > WARN_AT && !isFailure) {
-        playReject();
+        playSample('wrong');
         printResponse('<span class="text-red">&gt;: PROCESSOR DISABLED UNTIL THE LAST 4 MIN.</span>');
         return;
       }
       invalidAttempts = 0;
-      playAccept();
+      playSample('reset');
       resetTimer();
       printResponse('<span class="text-amber">&gt;: CODE ACCEPTED. TIMER RESET. NAMASTE.</span>');
-      // Flash screen
+      // Brief green-glow flash on the monitor (CSS animation, see .flash-accept).
       const scr = document.getElementById('monitor-screen');
-      scr.style.transition = 'box-shadow 0.08s';
-      scr.style.boxShadow = '0 0 50px rgba(0,255,0,0.45), inset 0 0 60px rgba(0,80,0,0.25)';
-      setTimeout(()=>{ scr.style.boxShadow=''; setTimeout(()=>scr.style.transition='',400); }, 650);
+      scr.classList.remove('flash-accept');
+      void scr.offsetWidth;            // reflow so the animation re-triggers
+      scr.classList.add('flash-accept');
     } else {
       input.value = '';
       invalidAttempts++;
-      playReject();
+      playSample('wrong');
       if (invalidAttempts >= 2) {
         // Second bad input in a row → show the Station 3 protocol warning.
         invalidAttempts = 0;
@@ -1480,7 +1480,8 @@
   function applySettings() {
     const v = parseInt(document.getElementById('settings-minutes').value);
     if (isNaN(v)||v<1||v>999) return;
-    closeSettings(); resetTimer(v*60);
+    closeSettings();
+    resetTimer(v*60);
     printResponse(`<span class="text-amber">&gt;: TIMER SET TO ${v} MINUTES.</span>`);
   }
 
@@ -1501,11 +1502,11 @@
     renderTimeDirect(Math.floor(remaining/60), remaining%60);
     if (remaining <= WARN_AT && remaining > 0 && !isFailure) {
       document.getElementById('flip-clock').classList.add('timer-alarm');
-      isAlarm = true;
     }
     buildKeyboard();
     setScreen('home');
-    tickClock(); setInterval(tickClock, 15000);
+    tickClock();
+    setInterval(tickClock, 15000);
     if (remaining > 0) startTimer();
     else {
       isFailure = true;
@@ -1537,7 +1538,9 @@
             p.then(() => { a.pause(); a.currentTime = 0; a.volume = origVol; })
              .catch(() => { a.volume = origVol; });
           } else {
-            a.pause(); a.currentTime = 0; a.volume = origVol;
+            a.pause();
+            a.currentTime = 0;
+            a.volume = origVol;
           }
         });
       });
@@ -1687,8 +1690,6 @@
       'ACCESS: <span style="color:var(--red-alarm)">CLASSIFIED</span><br><br>This station is not yet operational.<br><br>Namaste.';
     m.classList.add('open');
   }
-
-  function closeMobileDrawer() {}
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

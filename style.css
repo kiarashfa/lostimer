@@ -1,5 +1,5 @@
-﻿/* ============================================
-   THE SWAN STATION — style.css  v3
+/* ============================================
+   THE SWAN STATION — style.css  v8.1
    DHARMA Initiative Computing System
    ============================================ */
 
@@ -63,7 +63,8 @@ body {
 }
 body::after {
   content: '';
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   pointer-events: none;
   background: repeating-linear-gradient(
     to bottom, transparent 0, transparent 2px, rgba(0,0,0,0.07) 2px, rgba(0,0,0,0.07) 4px
@@ -93,12 +94,14 @@ button, input { font-family: inherit; }
   z-index: 100;
 }
 
-.top-bar-left { display: flex; align-items: center; gap: 10px; }
 .top-bar-center {
-  position: absolute; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
-.top-bar-right { display: flex; align-items: center; gap: 10px; }
 
 /* Dharma SVG logo in top bar */
 .dharma-logo { width: 56px; height: 56px; flex-shrink: 0; object-fit: contain; }
@@ -117,7 +120,8 @@ button, input { font-family: inherit; }
 }
 .site-status .dot {
   display: inline-block;
-  width: 6px; height: 6px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--green);
   box-shadow: 0 0 6px var(--green);
@@ -127,19 +131,6 @@ button, input { font-family: inherit; }
 }
 @keyframes dotPulse { 50% { opacity: 0.3; } }
 
-.top-bar-btn {
-  background: none;
-  border: 1px solid var(--panel-border);
-  color: var(--green-dim);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 4px 9px;
-  cursor: pointer;
-  letter-spacing: 1px;
-  transition: all 0.15s;
-}
-.top-bar-btn:hover { border-color: var(--green-dim); color: var(--green); }
-
 /* ── MAIN LAYOUT ── */
 .main-layout {
   display: flex;
@@ -147,7 +138,6 @@ button, input { font-family: inherit; }
   justify-content: center;
   overflow: hidden;
 }
-
 
 /* ── CENTER COLUMN ── */
 .center-col {
@@ -207,7 +197,9 @@ button, input { font-family: inherit; }
 /* Four corner bolts */
 .timer-housing::before, .timer-housing::after {
   content: '';
-  position: absolute; width: 9px; height: 9px;
+  position: absolute;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #909090, #1c1c1c 75%);
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.06);
@@ -216,11 +208,14 @@ button, input { font-family: inherit; }
 .timer-housing::before { left: 9px; }
 .timer-housing::after  { right: 9px; }
 .timer-bolt-bl, .timer-bolt-br {
-  position: absolute; width: 9px; height: 9px;
+  position: absolute;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #909090, #1c1c1c 75%);
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.06);
-  bottom: 7px; pointer-events: none;
+  bottom: 7px;
+  pointer-events: none;
 }
 .timer-bolt-bl { left: 9px; }
 .timer-bolt-br { right: 9px; }
@@ -236,8 +231,10 @@ button, input { font-family: inherit; }
 .flip-clock { display: inline-flex; align-items: stretch; gap: 12px; }
 
 .flip-group {
-  display: inline-flex; gap: 5px;
-  padding: 8px 9px; border-radius: 4px;
+  display: inline-flex;
+  gap: 5px;
+  padding: 8px 9px;
+  border-radius: 4px;
 }
 .flip-group-minutes {
   background: #2A2A2A;
@@ -263,7 +260,8 @@ button, input { font-family: inherit; }
 .flip-digit .top-half,
 .flip-digit .bottom-half {
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   width: 100%;
   height: 50%;
   overflow: hidden;
@@ -293,7 +291,9 @@ button, input { font-family: inherit; }
   position: absolute;
   top: 0;
   height: var(--tile-h);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
@@ -306,7 +306,9 @@ button, input { font-family: inherit; }
   position: absolute;
   bottom: 0;
   height: var(--tile-h);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   text-shadow: 0 -1px 2px rgba(0,0,0,0.3);
 }
@@ -315,7 +317,8 @@ button, input { font-family: inherit; }
 .flip-digit::after {
   content: '';
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   top: 50%;
   height: 2px;
   background: #000;
@@ -326,7 +329,8 @@ button, input { font-family: inherit; }
 /* ── ANIMATED FLAP — top-half that folds down on digit change ── */
 .flip-digit .flap {
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   top: 0;
   width: 100%;
   height: 50%;
@@ -349,7 +353,9 @@ button, input { font-family: inherit; }
   position: absolute;
   top: 0;
   height: var(--tile-h);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
@@ -369,7 +375,8 @@ button, input { font-family: inherit; }
 /* Shadow cast on bottom half as the flap falls */
 .flip-digit .flap-shadow {
   position: absolute;
-  left: 0; right: 0;
+  left: 0;
+  right: 0;
   top: 50%;
   height: 50%;
   background: linear-gradient(180deg, rgba(0,0,0,0.3), transparent 60%);
@@ -398,10 +405,12 @@ button, input { font-family: inherit; }
 }
 .flip-group-seconds .flip-digit .top-half .digit-text,
 .flip-group-seconds .flip-digit .flap .digit-text {
-  color: #111; text-shadow: none;
+  color: #111;
+  text-shadow: none;
 }
 .flip-group-seconds .flip-digit .bottom-half .digit-text {
-  color: #111; text-shadow: none;
+  color: #111;
+  text-shadow: none;
 }
 
 /* ── ALARM STATE (housing glow only — tiles stay their natural color) ── */
@@ -504,20 +513,30 @@ button, input { font-family: inherit; }
 
 /* Timer controls row */
 .timer-controls {
-  display: flex; align-items: center; gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .timer-info {
-  font-family: var(--font-mono); font-size: 0.58rem;
-  color: rgba(160,160,160,0.28); letter-spacing: 1px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: rgba(160,160,160,0.28);
+  letter-spacing: 1px;
 }
 .btn-icon {
   background: none;
   border: 1px solid rgba(160,160,160,0.2);
   color: rgba(160,160,160,0.4);
-  font-size: 0.82rem; width: 26px; height: 26px;
-  cursor: pointer; border-radius: 3px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.15s; font-family: var(--font-mono);
+  font-size: 0.82rem;
+  width: 26px;
+  height: 26px;
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  font-family: var(--font-mono);
 }
 .btn-icon:hover { border-color: rgba(160,160,160,0.5); color: rgba(200,200,200,0.8); background: rgba(255,255,255,0.04); }
 
@@ -538,12 +557,20 @@ button, input { font-family: inherit; }
 }
 .monitor-outer::before {
   content: 'DHARMA INITIATIVE — COMPUTING DIVISION';
-  position: absolute; bottom: 13px; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-mono); font-size: 0.46rem;
-  color: rgba(80,60,30,0.65); letter-spacing: 2px; white-space: nowrap;
+  position: absolute;
+  bottom: 13px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.46rem;
+  color: rgba(80,60,30,0.65);
+  letter-spacing: 2px;
+  white-space: nowrap;
 }
 .monitor-inner-bezel {
-  background: var(--case-bezel); border-radius: 8px; padding: 10px;
+  background: var(--case-bezel);
+  border-radius: 8px;
+  padding: 10px;
   box-shadow: inset 0 2px 12px rgba(0,0,0,0.9);
 }
 .monitor-screen {
@@ -552,24 +579,29 @@ button, input { font-family: inherit; }
   /* Fixed height — user scrolls inside */
   height: 370px;
   padding: 13px 15px;
-  position: relative; overflow: hidden;
+  position: relative;
+  overflow: hidden;
   box-shadow: inset 0 0 40px rgba(0,200,0,0.05), inset 0 0 80px rgba(0,0,0,0.3);
 }
 /* CRT curvature */
 .monitor-screen::before {
   content: '';
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
-  pointer-events: none; z-index: 5;
+  pointer-events: none;
+  z-index: 5;
 }
 /* Scanlines */
 .monitor-screen::after {
   content: '';
-  position: absolute; inset: 0;
+  position: absolute;
+  inset: 0;
   background: repeating-linear-gradient(
     to bottom, transparent 0, transparent 3px, rgba(0,0,0,0.18) 3px, rgba(0,0,0,0.18) 4px
   );
-  pointer-events: none; z-index: 4;
+  pointer-events: none;
+  z-index: 4;
 }
 
 /* Scrollable inner area — flex column so .screen-content can grow and
@@ -579,7 +611,8 @@ button, input { font-family: inherit; }
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  position: relative; z-index: 3;
+  position: relative;
+  z-index: 3;
   scrollbar-width: thin;
   scrollbar-color: var(--green-dim) transparent;
   padding-right: 4px;
@@ -600,7 +633,8 @@ button, input { font-family: inherit; }
      short pages) but never shrink below natural content size (so long
      pages still scroll normally). */
   flex: 1 0 auto;
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Terminal input area sits at the bottom of the flex column and never shrinks */
@@ -615,13 +649,7 @@ button, input { font-family: inherit; }
 .text-dim   { color: var(--green-dim) !important; }
 .blink      { animation: genericBlink 1s step-end infinite; }
 @keyframes genericBlink { 0%,100%{opacity:1;} 50%{opacity:0;} }
-
-.cursor {
-  display: inline-block; width: 0.55em; height: 1em;
-  background: var(--green); vertical-align: text-bottom;
-  animation: cursorBlink 1s step-end infinite; margin-left: 2px;
-}
-@keyframes cursorBlink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+@keyframes cursorBlink  { 0%,100%{opacity:1;} 50%{opacity:0;} }
 
 /* Typewriter cursor — follows the typing head while the screen renders. */
 .tw-cursor {
@@ -635,27 +663,39 @@ button, input { font-family: inherit; }
 
 /* ── TERMINAL COMMAND INPUT (inside monitor) ── */
 .term-input-row {
-  margin-top: 10px; flex-shrink: 0;
-  display: flex; align-items: center; gap: 0;
+  margin-top: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
   background: rgba(0,50,0,0.18);
   border-top: 1px solid rgba(0,204,0,0.15);
   padding-top: 9px;
 }
 .input-prompt {
-  color: var(--green-bright); font-size: 0.88rem; white-space: nowrap;
-  font-weight: bold; margin-right: 4px; flex-shrink: 0;
+  color: var(--green-bright);
+  font-size: 0.88rem;
+  white-space: nowrap;
+  font-weight: bold;
+  margin-right: 4px;
+  flex-shrink: 0;
 }
 
 #code-input {
-  flex: 1; background: transparent; border: none; outline: none;
-  color: var(--green-bright); font-family: var(--font-mono);
-  font-size: 0.88rem; letter-spacing: 3px;
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--green-bright);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  letter-spacing: 3px;
   /* Wide green caret — acts as our block cursor */
   caret-color: var(--green);
   caret-shape: block;
-  min-width: 0; padding: 0;
+  min-width: 0;
+  padding: 0;
 }
-#code-input::placeholder { color: var(--green-dim); font-size: 0.72rem; letter-spacing: 1px; }
 #term-response { font-size: 0.8rem; min-height: 1.4em; margin-top: 5px; flex-shrink: 0; }
 
 /* Screen glitch */
@@ -667,6 +707,16 @@ button, input { font-family: inherit; }
   60%  { filter: hue-rotate(270deg) brightness(1.5); transform: translateX(-2px); }
   80%  { filter: hue-rotate(45deg) brightness(0.8); transform: translateX(1px); }
   100% { filter: none; transform: translateX(0); }
+}
+
+/* Brief green glow when a valid code is accepted */
+.monitor-screen.flash-accept {
+  animation: screenAccept 0.65s ease-out;
+}
+@keyframes screenAccept {
+  0%   { box-shadow: none; }
+  15%  { box-shadow: 0 0 50px rgba(0,255,0,0.45), inset 0 0 60px rgba(0,80,0,0.25); }
+  100% { box-shadow: none; }
 }
 
 /* ═══════════════════════════════════════════
@@ -700,28 +750,47 @@ button, input { font-family: inherit; }
     inset -4px 0 8px rgba(0,0,0,0.18);
 }
 .case-badge {
-  position: absolute; top: 8px; left: 22px;
-  font-family: var(--font-mono); font-size: 0.55rem;
-  color: rgba(80,60,30,0.55); letter-spacing: 2px;
+  position: absolute;
+  top: 8px;
+  left: 22px;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: rgba(80,60,30,0.55);
+  letter-spacing: 2px;
 }
 .case-badge .swan-glyph {
-  display: inline-block; width: 10px; height: 10px;
-  border-radius: 50%; background: rgba(80,60,30,0.35);
-  margin-right: 6px; vertical-align: middle;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(80,60,30,0.35);
+  margin-right: 6px;
+  vertical-align: middle;
 }
 .case-model {
-  position: absolute; top: 8px; right: 22px;
-  font-family: var(--font-mono); font-size: 0.5rem;
-  color: rgba(80,60,30,0.55); letter-spacing: 1.5px;
+  position: absolute;
+  top: 8px;
+  right: 22px;
+  font-family: var(--font-mono);
+  font-size: 0.5rem;
+  color: rgba(80,60,30,0.55);
+  letter-spacing: 1.5px;
 }
 .case-vents {
-  position: absolute; left: 12px; right: 12px;
-  top: 50%; transform: translateY(-50%);
-  height: 22px; pointer-events: none;
-  display: flex; justify-content: space-between; align-items: center;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 22px;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .case-vent-group {
-  height: 100%; width: 24px;
+  height: 100%;
+  width: 24px;
   background: repeating-linear-gradient(
     to bottom,
     rgba(80,60,30,0.25) 0px,
@@ -762,9 +831,15 @@ button, input { font-family: inherit; }
 }
 .keyboard-chassis::after {
   content: '● DHARMA INITIATIVE ●';
-  position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
-  font-family: var(--font-mono); font-size: 0.44rem;
-  color: rgba(30,20,10,0.45); letter-spacing: 2px; white-space: nowrap;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.44rem;
+  color: rgba(30,20,10,0.45);
+  letter-spacing: 2px;
+  white-space: nowrap;
 }
 .key-row { display: flex; gap: 4px; margin-bottom: 4px; justify-content: center; }
 
@@ -773,46 +848,55 @@ button, input { font-family: inherit; }
   background: linear-gradient(175deg, var(--key-light), var(--key-mid) 40%, var(--key-dark));
   border: 1px solid var(--key-edge);
   border-bottom: 3px solid var(--key-shadow);
-  border-radius: 3px; min-width: 29px; height: 34px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer; user-select: none;
-  font-family: var(--font-mono); font-size: 0.62rem; color: var(--key-text); font-weight: bold;
-  position: relative; transition: all 0.06s; line-height: 1.1; text-align: center;
+  border-radius: 3px;
+  min-width: 29px;
+  height: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--key-text);
+  font-weight: bold;
+  position: relative;
+  transition: all 0.06s;
+  line-height: 1.1;
+  text-align: center;
   box-shadow: inset 0 1px 2px rgba(245,240,220,0.18), 0 1px 3px rgba(0,0,0,0.6);
 }
 .key:active, .key.pressed {
-  transform: translateY(2px); border-bottom-width: 1px;
+  transform: translateY(2px);
+  border-bottom-width: 1px;
   background: linear-gradient(175deg, #666456, #565446 45%, #444236);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.55), inset 0 -1px 1px rgba(255,255,255,0.08), 0 0 1px rgba(0,0,0,0.8);
-  color: var(--key-text); border-color: var(--key-edge);
+  color: var(--key-text);
+  border-color: var(--key-edge);
 }
 
 .key .key-main { font-size: 0.75rem; }
 .key .key-shift { font-size: 0.5rem; color: var(--key-text-dim); line-height: 1; }
 .key-w-1  { min-width: 29px; }
 .key-w-1h { min-width: 52px; }
-.key-w-2  { min-width: 58px; }
-.key-w-2h { min-width: 76px; }
-.key-w-3  { min-width: 84px; }
-.key-w-sp { min-width: 220px; }
-.key-w-ret { min-width: 76px; }
 .key-w-execute { min-width: 96px; }
 .key-w-space   { min-width: 320px; height: 30px; }
 
-/* Special keys (ESC, SHIFT, CTRL, RETURN, RESET, REPT, ←, →, EXECUTE) —
-   lighter tone of the same gunmetal family so they read as a distinct
-   group against the darker regular keys. */
 /* Special keys (ESC, SHIFT, CTRL, RETURN, RESET, REPT, ←, →, EXECUTE) —
    a slightly darker tone of the same gunmetal family. Close enough to
    regular keys to read as one keyboard, just darker enough to flag the
    functional group. */
 .key-special {
   background: linear-gradient(175deg, var(--special-light), var(--special-mid) 40%, var(--special-dark));
-  color: var(--special-text); font-size: 0.54rem; letter-spacing: 0.5px;
+  color: var(--special-text);
+  font-size: 0.54rem;
+  letter-spacing: 0.5px;
 }
 .key-special:active, .key-special.pressed {
   background: linear-gradient(175deg, #565442, #464432 45%, #343224);
-  color: var(--special-text); border-color: var(--key-edge);
+  color: var(--special-text);
+  border-color: var(--key-edge);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), inset 0 -1px 1px rgba(255,255,255,0.06), 0 0 1px rgba(0,0,0,0.8);
 }
 
@@ -820,7 +904,8 @@ button, input { font-family: inherit; }
    FULLSCREEN GAME MENU OVERLAY
 ═══════════════════════════════════════════ */
 #menu-overlay {
-  position: fixed; inset: 0;
+  position: fixed;
+  inset: 0;
   background: rgba(0,0,0,0.88);
   z-index: 500;
   display: none;
@@ -874,7 +959,11 @@ button, input { font-family: inherit; }
   cursor: pointer;
   text-align: center;
   transition: all 0.15s;
-  display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   letter-spacing: 0.5px;
   width: 100%;
 }
@@ -891,25 +980,47 @@ button, input { font-family: inherit; }
 
 /* Menu links section */
 .menu-links {
-  display: flex; gap: 24px; flex-wrap: wrap; justify-content: center; width: 100%;
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 .menu-link-group { text-align: center; }
 .menu-link-group-title {
-  font-size: 0.62rem; color: var(--green-dim); letter-spacing: 3px;
-  margin-bottom: 8px; border-bottom: 1px solid #1a1a1a; padding-bottom: 4px;
+  font-size: 0.62rem;
+  color: var(--green-dim);
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #1a1a1a;
+  padding-bottom: 4px;
 }
 .menu-link-group a, .menu-link-group button {
-  display: block; padding: 4px 0;
-  font-family: var(--font-mono); font-size: 0.72rem;
-  color: #334433; background: none; border: none; cursor: pointer;
-  letter-spacing: 0.5px; transition: color 0.1s; text-align: center; width: 100%;
+  display: block;
+  padding: 4px 0;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #334433;
+  background: none;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: color 0.1s;
+  text-align: center;
+  width: 100%;
 }
 .menu-link-group a:hover, .menu-link-group button:hover { color: var(--green); text-decoration: none; }
 
 .menu-close-btn {
-  background: none; border: 1px solid var(--green-dim); color: var(--green);
-  font-family: var(--font-mono); font-size: 0.7rem;
-  padding: 7px 20px; cursor: pointer; letter-spacing: 2px; transition: all 0.15s;
+  background: none;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 7px 20px;
+  cursor: pointer;
+  letter-spacing: 2px;
+  transition: all 0.15s;
   margin-top: 4px;
 }
 .menu-close-btn:hover { background: var(--green); color: #000; }
@@ -918,33 +1029,57 @@ button, input { font-family: inherit; }
    SETTINGS MODAL
 ═══════════════════════════════════════════ */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-  z-index: 600; display: none; align-items: center; justify-content: center;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 600;
+  display: none;
+  align-items: center;
+  justify-content: center;
 }
 .modal-overlay.open { display: flex; }
 .modal-box {
-  background: var(--sidebar-bg); border: 1px solid var(--green-dim);
-  padding: 24px 28px; max-width: 320px; width: 90%;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--green-dim);
+  padding: 24px 28px;
+  max-width: 320px;
+  width: 90%;
   box-shadow: 0 0 40px rgba(0,200,0,0.1);
 }
 .modal-title {
-  font-family: var(--font-vt); font-size: 1.3rem; color: var(--green);
-  letter-spacing: 2px; margin-bottom: 14px;
-  border-bottom: 1px solid var(--green-dim); padding-bottom: 7px;
+  font-family: var(--font-vt);
+  font-size: 1.3rem;
+  color: var(--green);
+  letter-spacing: 2px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--green-dim);
+  padding-bottom: 7px;
 }
 .modal-label { font-size: 0.72rem; color: var(--green-dim); letter-spacing: 1px; margin-bottom: 6px; display: block; }
 .modal-input {
-  background: #000; border: 1px solid var(--green-dim); color: var(--green);
-  font-family: var(--font-mono); font-size: 1rem; padding: 6px 10px;
-  width: 100%; margin-bottom: 12px; outline: none;
+  background: #000;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  padding: 6px 10px;
+  width: 100%;
+  margin-bottom: 12px;
+  outline: none;
 }
 .modal-input:focus { border-color: var(--green); }
 .modal-sub { font-size: 0.6rem; color: #334433; letter-spacing: 0.5px; margin-bottom: 14px; line-height: 1.7; }
 .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
 .btn-modal {
-  background: none; border: 1px solid var(--green-dim); color: var(--green);
-  font-family: var(--font-mono); font-size: 0.72rem; padding: 6px 14px;
-  cursor: pointer; letter-spacing: 1px; transition: all 0.15s;
+  background: none;
+  border: 1px solid var(--green-dim);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
 }
 .btn-modal:hover { background: var(--green); color: #000; }
 .btn-modal.cancel { border-color: #333; color: #555; }
@@ -952,8 +1087,12 @@ button, input { font-family: inherit; }
 
 /* Station modal */
 .station-modal-box {
-  background: var(--sidebar-bg); border: 1px solid var(--red-alarm);
-  padding: 24px 28px 28px; max-width: 320px; width: 90%; text-align: center;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--red-alarm);
+  padding: 24px 28px 28px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
   box-shadow: 0 0 40px rgba(200,0,0,0.15);
 }
 .station-modal-logo {
@@ -966,8 +1105,11 @@ button, input { font-family: inherit; }
   filter: drop-shadow(0 0 12px rgba(200,0,0,0.35));
 }
 .station-modal-box h3 {
-  font-family: var(--font-vt); font-size: 1.4rem; color: var(--red-alarm);
-  letter-spacing: 3px; margin-bottom: 10px;
+  font-family: var(--font-vt);
+  font-size: 1.4rem;
+  color: var(--red-alarm);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
 }
 .station-modal-box p { font-size: 0.72rem; color: var(--green-dim); letter-spacing: 1px; line-height: 1.9; }
 
@@ -975,17 +1117,27 @@ button, input { font-family: inherit; }
    FAILURE OVERLAY
 ═══════════════════════════════════════════ */
 #failure-overlay {
-  position: fixed; inset: 0; background: rgba(180,0,0,0);
-  z-index: 400; display: none; align-items: center; justify-content: center; pointer-events: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(180,0,0,0);
+  z-index: 400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 #failure-overlay.active {
-  display: flex; pointer-events: all;
+  display: flex;
+  pointer-events: all;
   animation: failureFlash 0.5s step-end 6;
 }
 @keyframes failureFlash { 0%,100%{background:rgba(180,0,0,0);} 50%{background:rgba(180,0,0,0.45);} }
 .failure-text {
-  font-family: var(--font-vt); font-size: clamp(2rem, 8vw, 5rem);
-  color: var(--red-bright); letter-spacing: 6px; text-align: center;
+  font-family: var(--font-vt);
+  font-size: clamp(2rem, 8vw, 5rem);
+  color: var(--red-bright);
+  letter-spacing: 6px;
+  text-align: center;
   text-shadow: 0 0 40px rgba(255,50,0,0.8);
   animation: textFlicker 0.2s step-end infinite;
 }
@@ -995,37 +1147,43 @@ button, input { font-family: inherit; }
    SOUND PROMPT
 ═══════════════════════════════════════════ */
 #sound-prompt {
-  position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,40,0,0.9); border: 1px solid var(--green-dim);
-  color: var(--green-dim); font-family: var(--font-mono); font-size: 0.62rem;
-  padding: 5px 14px; letter-spacing: 1px; cursor: pointer; z-index: 200;
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,40,0,0.9);
+  border: 1px solid var(--green-dim);
+  color: var(--green-dim);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  padding: 5px 14px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  z-index: 200;
 }
 #sound-prompt.hidden { display: none; }
-
-/* ═══════════════════════════════════════════
-   DRAWER BG (mobile)
-═══════════════════════════════════════════ */
-
 
 /* ═══════════════════════════════════════════
    FOOTER
 ═══════════════════════════════════════════ */
 footer {
-  background: var(--panel); border-top: 1px solid var(--panel-border);
-  text-align: center; padding: 6px 14px;
-  font-size: 0.6rem; color: var(--green-dim); letter-spacing: 1px;
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px;
+  background: var(--panel);
+  border-top: 1px solid var(--panel-border);
+  text-align: center;
+  padding: 6px 14px;
+  font-size: 0.6rem;
+  color: var(--green-dim);
+  letter-spacing: 1px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 4px;
 }
 footer a { color: var(--green-dim); }
 footer a:hover { color: var(--green); }
+footer span:first-child { text-align: left; }
+footer span:last-child  { text-align: right; }
 #footer-time { color: var(--green); font-weight: bold; }
-
-/* ═══════════════════════════════════════════
-   VIDEO inside monitor (inline fallback)
-═══════════════════════════════════════════ */
-.screen-video {
-  width: 100%; max-height: 200px; background: #000; display: block; margin: 6px 0;
-}
 
 /* ═══════════════════════════════════════════
    FULLSCREEN ORIENTATION FILM
@@ -1157,11 +1315,8 @@ footer a:hover { color: var(--green); }
    MOBILE
 ═══════════════════════════════════════════ */
 @media (max-width: 768px) {
-  
-  
   :root { --tile-w: 46px; --tile-h: 68px; --tile-fs: 3.9rem; }
   .timer-housing { padding: 14px 16px 12px; }
-  .timer-separator { width: 10px; }
   .monitor-screen { height: 280px; }
   .keyboard-wrap {
     padding: 0 4px;
@@ -1180,10 +1335,6 @@ footer a:hover { color: var(--green); }
   .key { min-width: calc((100vw - 40px) / 18); height: 28px; }
   .key .key-main { font-size: 0.65rem; }
   .key-w-1  { min-width: calc((100vw - 40px) / 18); }
-  .key-w-sp { min-width: 150px; }
-  .key-w-ret { min-width: 50px; }
-  .key-w-2h { min-width: 50px; }
-  .key-w-2  { min-width: 36px; }
   .key-w-1h { min-width: 32px; }
   .key-w-execute { min-width: 60px; }
   .key-w-space   { min-width: 200px; height: 26px; }
@@ -1217,7 +1368,6 @@ footer a:hover { color: var(--green); }
   .key .key-shift { font-size: 0.42rem; }
   .key-w-execute { min-width: 62px; }
   .key { min-width: calc((100vw - 30px) / 18); }
-  .key-w-sp { min-width: 120px; }
   .key-w-space   { min-width: 150px; }
   .menu-stations-grid { grid-template-columns: repeat(2, 1fr); }
   .glyph-s29 .top-half .digit-text, .glyph-s29 .bottom-half .digit-text, .glyph-s29 .flap .digit-text { font-size: 1.8rem !important; }
