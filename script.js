@@ -393,19 +393,33 @@
     } catch(e){}
   }
 
-  // ── FLIP DIGIT (alt's approach: append new, remove old) ──
+  // ── FLIP DIGIT (split-flap: top flap folds down to reveal new digit) ──
   function flipDigit(id, newChar) {
     const tile = document.getElementById(id);
     if (!tile) return;
-    const oldSpan = tile.querySelector('.digit');
-    const fresh = document.createElement('span');
-    fresh.className = 'digit enter';
-    fresh.textContent = newChar;
-    tile.appendChild(fresh);
-    if (oldSpan) {
-      oldSpan.classList.add('exit');
-      setTimeout(() => oldSpan.remove(), 340);
-    }
+    const topHalf = tile.querySelector('.top-half .digit-text');
+    const bottomHalf = tile.querySelector('.bottom-half .digit-text');
+    const flap = tile.querySelector('.flap');
+    const flapText = flap.querySelector('.digit-text');
+
+    // 1. Bottom half immediately shows the NEW digit (revealed as flap falls)
+    bottomHalf.textContent = newChar;
+    // 2. Top half shows the NEW digit (it's what's "behind" the flap)
+    topHalf.textContent = newChar;
+    // 3. Flap shows the OLD digit and folds down over the top half
+    flapText.textContent = flapState[id.replace('fd-','')];
+
+    // Trigger animation
+    flap.classList.remove('flipping');
+    void flap.offsetWidth;  // reflow
+    flap.style.display = 'block';
+    flap.classList.add('flipping');
+
+    setTimeout(() => {
+      flap.classList.remove('flipping');
+      flap.style.display = 'none';
+    }, 500);
+
     playTick();
     flapState[id.replace('fd-','')] = newChar;
   }
@@ -427,16 +441,22 @@
   }
 
   function renderTimeDirect(mins, secs) {
-    // Set without animation (initial load)
+    // Set without animation (initial load) — update both halves directly
     const mm = String(Math.max(0,Math.min(999,mins))).padStart(3,'0');
     const ss = String(Math.max(0,Math.min(59,secs))).padStart(2,'0');
     ['m1','m2','m3'].forEach((k,i) => {
       const tile = document.getElementById('fd-'+k);
-      if (tile) { const s = tile.querySelector('.digit'); if(s) s.textContent = mm[i]; flapState[k] = mm[i]; }
+      if (tile) {
+        tile.querySelectorAll('.digit-text').forEach(el => el.textContent = mm[i]);
+        flapState[k] = mm[i];
+      }
     });
     ['s1','s2'].forEach((k,i) => {
       const tile = document.getElementById('fd-'+k);
-      if (tile) { const s = tile.querySelector('.digit'); if(s) s.textContent = ss[i]; flapState[k] = ss[i]; }
+      if (tile) {
+        tile.querySelectorAll('.digit-text').forEach(el => el.textContent = ss[i]);
+        flapState[k] = ss[i];
+      }
     });
   }
 
