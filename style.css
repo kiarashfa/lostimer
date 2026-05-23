@@ -1468,7 +1468,7 @@ footer span:last-child  { text-align: right; }
   .glyph-z7 .top-half .digit-text,  .glyph-z7 .bottom-half .digit-text,  .glyph-z7 .flap .digit-text  { font-size: 3.2rem !important; }
   .glyph-u29 .top-half .digit-text, .glyph-u29 .bottom-half .digit-text, .glyph-u29 .flap .digit-text { font-size: 2.8rem !important; }
   .glyph-g1 .top-half .digit-text,  .glyph-g1 .bottom-half .digit-text,  .glyph-g1 .flap .digit-text  { font-size: 2.4rem !important; }
-  .glyph-z5 .top-half .digit-text,  .glyph-z5 .bottom-half .digit-text,  .glyph-z5 .flap .digit-text  { font-size: 2.8rem !important; }
+  .glyph-z5 .top-half .digit-text,  .glyph-z5 .bottom-half .digit-text,  .glyph-z5 .flap .digit-text  { font-size: 1.8rem !important; }
 }
 
 @media (max-width: 400px) {
@@ -1491,5 +1491,5 @@ footer span:last-child  { text-align: right; }
   .glyph-z7 .top-half .digit-text,  .glyph-z7 .bottom-half .digit-text,  .glyph-z7 .flap .digit-text  { font-size: 2.5rem !important; }
   .glyph-u29 .top-half .digit-text, .glyph-u29 .bottom-half .digit-text, .glyph-u29 .flap .digit-text { font-size: 2.2rem !important; }
   .glyph-g1 .top-half .digit-text,  .glyph-g1 .bottom-half .digit-text,  .glyph-g1 .flap .digit-text  { font-size: 2rem !important; }
-  .glyph-z5 .top-half .digit-text,  .glyph-z5 .bottom-half .digit-text,  .glyph-z5 .flap .digit-text  { font-size: 2.2rem !important; }
+  .glyph-z5 .top-half .digit-text,  .glyph-z5 .bottom-half .digit-text,  .glyph-z5 .flap .digit-text  { font-size: 1.2rem !important; }
 }
