@@ -819,7 +819,7 @@
     about: () => `
 <span class="screen-line text-amber">// ABOUT THIS PROJECT //</span>
 <span class="screen-line">&nbsp;</span>
-<span class="screen-line">The Swan Station is a fan tribute to ABC's <span class="text-amber">LOST</span> (2004–2010) and a working 108-minute countdown timer. Push the button. Or don't.</span>
+<span class="screen-line">The LOSTimer is a fan tribute to ABC's <span class="text-amber">LOST</span> (2004–2010) and a working 108-minute countdown timer. Push the button. Or don't.</span>
 <span class="screen-line">&nbsp;</span>
 <span class="screen-line text-amber">// WHY THIS EXISTS //</span>
 <span class="screen-line">&nbsp;</span>
