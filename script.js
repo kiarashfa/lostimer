@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    THE SWAN STATION — script.js  v8.1
    DHARMA Initiative Computing System
    ============================================ */
@@ -10,6 +10,7 @@
   const CORRECT_NUMS    = [4,8,15,16,23,42];
   const WARN_AT         = 4 * 60;   // seconds
   const STORAGE_KEY     = 'swan_v3';
+  const MUTE_KEY        = 'swan_muted_v1';
 
   // ── STATE ──
   let totalSeconds   = DEFAULT_MINUTES * 60;
@@ -18,6 +19,7 @@
   let isFailure      = false;
   let activeNav      = 'home';
   let soundEnabled   = false;
+  let muted          = false;       // user-toggled mute via the timer-frame button
   let timerInterval  = null;
   let beepInterval   = null;       // plays beep.mp3 every 2s when remaining <= 4:00
   let alarmLoopInterval = null;    // plays alarm.mp3 every 1.5s when remaining <= 1:00
@@ -46,17 +48,17 @@
   // All sample files live in assets/. Each gets a pool of Audio objects so
   // rapid repeated playback (e.g. fast typing) doesn't get cut off.
   const SAMPLE_DEFS = {
-    tick:     { src: 'soundfx/tick.mp3',     vol: 0.55, pool: 2 },
-    beep:     { src: 'soundfx/beep.mp3',     vol: 0.70, pool: 2 },
-    alarm:    { src: 'soundfx/alarm.mp3',    vol: 0.85, pool: 2 },
-    keyboard: { src: 'soundfx/keyboard.mp3', vol: 0.45, pool: 6 },
-    reset:    { src: 'soundfx/reset.mp3',    vol: 0.80, pool: 1 },
+    tick:     { src: 'soundfx/tick.mp3',     vol: 0.50, pool: 2 },
+    beep:     { src: 'soundfx/beep.mp3',     vol: 0.55, pool: 2 },
+    alarm:    { src: 'soundfx/alarm.mp3',    vol: 0.10, pool: 2 },
+    keyboard: { src: 'soundfx/keyboard.mp3', vol: 0.40, pool: 6 },
+    reset:    { src: 'soundfx/reset.mp3',    vol: 0.75, pool: 1 },
     shuffle:  { src: 'soundfx/shuffle.mp3',  vol: 0.75, pool: 1 },
-    menu:     { src: 'soundfx/menu.mp3',     vol: 0.65, pool: 1 },
+    menu:     { src: 'soundfx/menu.mp3',     vol: 0.75, pool: 1 },
     sysfail:  { src: 'soundfx/sysfail.mp3',  vol: 0.90, pool: 1 },
-    gear:     { src: 'soundfx/gear.mp3',     vol: 0.95, pool: 1 },
-    wrong:    { src: 'soundfx/wrong.mp3',    vol: 0.75, pool: 2 },
-    transm:   { src: 'soundfx/transm.mp3',   vol: 0.55, pool: 6 },
+    gear:     { src: 'soundfx/gear.mp3',     vol: 0.99, pool: 1 },
+    wrong:    { src: 'soundfx/wrong.mp3',    vol: 0.45, pool: 2 },
+    transm:   { src: 'soundfx/transm.mp3',   vol: 0.50, pool: 6 },
   };
   const samples = {};       // name -> { pool: [Audio,...], idx, vol }
 
@@ -74,7 +76,7 @@
   }
 
   function playSample(name) {
-    if (!soundEnabled) return;
+    if (!soundEnabled || muted) return;
     const s = samples[name];
     if (!s) return;
     const audio = s.pool[s.idx];
@@ -91,7 +93,7 @@
   function startBeepLoop() {
     if (beepInterval) return;
     playSample('beep');
-    beepInterval = setInterval(() => playSample('beep'), 2000);
+    beepInterval = setInterval(() => playSample('beep'), 2250);
   }
   function stopBeepLoop() {
     if (beepInterval) { clearInterval(beepInterval); beepInterval = null; }
@@ -120,17 +122,17 @@
 
   // Called every second from the timer; picks the right loop for current time.
   function updateAudioLoops() {
-    if (isFailure || remaining <= 0) {
+    if (isFailure || remaining <= 0 || muted) {
       stopBeepLoop();
       stopAlarmLoop();
       return;
     }
     if (remaining <= 10) {
       stopBeepLoop();
-      startAlarmLoop(1000);     // urgent 1s cadence for final countdown
+      startAlarmLoop(900);
     } else if (remaining <= 60) {
       stopBeepLoop();
-      startAlarmLoop(1500);     // normal alarm cadence
+      startAlarmLoop(2200);
     } else if (remaining <= WARN_AT) {
       stopAlarmLoop();
       startBeepLoop();
@@ -141,7 +143,7 @@
   }
 
   function playFailure() {
-    if (!soundEnabled) return;
+    if (!soundEnabled || muted) return;
     // Play sysfail.mp3 three times, spaced so each clip can finish.
     // sysfail.mp3 is ~0.5s; 1.2s spacing gives a clear, dramatic cadence.
     playSample('sysfail');
@@ -487,7 +489,7 @@
     });
 
     // Repeating shuffle sound.
-    const shuffleInterval = setInterval(() => playSample('shuffle'), 1000);
+    const shuffleInterval = setInterval(() => playSample('shuffle'), 2000);
     playSample('shuffle');
 
     const startTime = Date.now();
@@ -681,7 +683,7 @@
       Math.floor(totalSeconds/60) + ':00 ' + (totalSeconds === DEFAULT_MINUTES*60 ? 'DEFAULT' : 'CUSTOM');
 
     // Deceleration roulette shuffle (~2 seconds), then start the timer.
-    shuffleToValue(targets, 2000, () => {
+    shuffleToValue(targets, 1200, () => {
       saveState();
       startTimer();
     });
@@ -698,7 +700,7 @@
     // Tiles settle in show-accurate order: s1 → s2 → m2 → m1 → m3.
     // Glyphs lock silently in the background; the failure overlay timeline
     // below runs in parallel.
-    shuffleToGlyphs(5000);
+    shuffleToGlyphs(6200);
 
     // Overlay + glitch + screen swap happen on a fixed timeline alongside the shuffle.
     const overlay = document.getElementById('failure-overlay');
@@ -1489,6 +1491,37 @@
   function openMenu() { playSample('menu'); document.getElementById('menu-overlay').classList.add('open'); }
   function closeMenu() { document.getElementById('menu-overlay').classList.remove('open'); }
 
+  // ── MUTE TOGGLE ──
+  // Persists across sessions in its own localStorage key so the user's
+  // preference survives a timer reset / state wipe.
+  function loadMutePref() {
+    try { muted = localStorage.getItem(MUTE_KEY) === '1'; } catch (e) { muted = false; }
+  }
+  function saveMutePref() {
+    try { localStorage.setItem(MUTE_KEY, muted ? '1' : '0'); } catch (e) {}
+  }
+  function refreshMuteButton() {
+    const btn = document.getElementById('btn-mute');
+    if (!btn) return;
+    btn.classList.toggle('muted', muted);
+    btn.title = muted ? 'Unmute audio' : 'Mute audio';
+    btn.setAttribute('aria-pressed', muted ? 'true' : 'false');
+  }
+  function toggleMute() {
+    muted = !muted;
+    saveMutePref();
+    refreshMuteButton();
+    if (muted) {
+      // Silence any currently-playing loops immediately.
+      stopBeepLoop();
+      stopAlarmLoop();
+    } else {
+      // Resume the appropriate loop for the current remaining time, but
+      // only if the user has already enabled sound by clicking once.
+      if (soundEnabled) updateAudioLoops();
+    }
+  }
+
   // ── FOOTER CLOCK ──
   function tickClock() {
     const el = document.getElementById('footer-time');
@@ -1498,7 +1531,9 @@
   // ── INIT ──
   function init() {
     loadState();
+    loadMutePref();
     preloadSamples();
+    refreshMuteButton();
     renderTimeDirect(Math.floor(remaining/60), remaining%60);
     if (remaining <= WARN_AT && remaining > 0 && !isFailure) {
       document.getElementById('flip-clock').classList.add('timer-alarm');
@@ -1584,6 +1619,9 @@
       if (t.id === 'btn-settings-cancel') { closeSettings(); return; }
       if (t.id === 'btn-settings-apply') { applySettings(); return; }
       if (t.id === 'settings-modal' && t === e.currentTarget) { closeSettings(); return; }
+
+      // Mute toggle
+      if (t.id === 'btn-mute') { toggleMute(); return; }
 
       // Menu
       if (t.id === 'btn-menu') { openMenu(); return; }

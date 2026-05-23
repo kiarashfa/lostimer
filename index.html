@@ -14,6 +14,41 @@
 </head>
 <body>
 
+<!-- DYNAMIC BACKGROUND — SIMPLIFIED HATCH WALLS -->
+<div id="swan-hatch-bg" aria-hidden="true">
+  <svg viewBox="0 0 600 460" preserveAspectRatio="xMidYMid slice" focusable="false">
+    <!-- simple receding concrete planes -->
+    <polygon points="0,460 600,460 380,270 220,270" fill="#090806" opacity="0.96"/>
+    <polygon points="0,0 220,270 220,460 0,460" fill="#0e0c09" opacity="0.96"/>
+    <polygon points="600,0 380,270 380,460 600,460" fill="#0e0c09" opacity="0.96"/>
+    <polygon points="0,0 600,0 380,270 220,270" fill="#050403" opacity="0.98"/>
+
+    <!-- minimal perspective seams -->
+    <line x1="0" y1="460" x2="220" y2="270" stroke="#211b14" stroke-width="1.1" opacity="0.48"/>
+    <line x1="600" y1="460" x2="380" y2="270" stroke="#211b14" stroke-width="1.1" opacity="0.48"/>
+    <line x1="0" y1="0" x2="220" y2="270" stroke="#19150f" stroke-width="1" opacity="0.42"/>
+    <line x1="600" y1="0" x2="380" y2="270" stroke="#19150f" stroke-width="1" opacity="0.42"/>
+
+    <!-- one simple X on each wall, no props/signs/panels -->
+    <line x1="22" y1="118" x2="212" y2="396" stroke="#211b14" stroke-width="1.25" opacity="0.36"/>
+    <line x1="18" y1="398" x2="212" y2="126" stroke="#211b14" stroke-width="1.25" opacity="0.28"/>
+    <line x1="578" y1="118" x2="388" y2="396" stroke="#211b14" stroke-width="1.25" opacity="0.36"/>
+    <line x1="582" y1="398" x2="388" y2="126" stroke="#211b14" stroke-width="1.25" opacity="0.28"/>
+  </svg>
+
+  <span class="hatch-fog hf1"></span>
+  <span class="hatch-fog hf2"></span>
+  <span class="hatch-fog hf3"></span>
+
+  <span class="hatch-mote hm1"></span>
+  <span class="hatch-mote hm2"></span>
+  <span class="hatch-mote hm3"></span>
+  <span class="hatch-mote hm4"></span>
+  <span class="hatch-mote hm5"></span>
+  <span class="hatch-mote hm6"></span>
+</div>
+
+
 <!-- FAILURE OVERLAY -->
 <div id="failure-overlay">
   <div class="failure-text">⚠ SYSTEM FAILURE ⚠</div>
@@ -97,7 +132,7 @@
 </div>
 
 <!-- SOUND PROMPT -->
-<div id="sound-prompt">🔊 Click anywhere to enable sound</div>
+<div id="sound-prompt">🔊 CLICK TO ACTIVATE STATION AUDIO</div>
 
 <!-- ═══════════ APP ═══════════ -->
 <div id="app">
@@ -109,8 +144,8 @@
       <div class="site-title-block">
         <span class="site-title">THE SWAN STATION</span>
         <span class="site-status">
-          <span class="dot"></span>STATUS: ONLINE &nbsp;·&nbsp; PROTOCOL: ACTIVE
-        </span>
+          <span class="dot"></span>STATUS: ONLINE&nbsp;·&nbsp; PROTOCOL: ACTIVE
+</span>
       </div>
     </div>
   </header>
@@ -125,7 +160,6 @@
       <div class="timer-housing">
         <span class="timer-bolt-bl"></span>
         <span class="timer-bolt-br"></span>
-        <div class="timer-label">DHARMA INITIATIVE · SWAN STATION</div>
 
         <div class="flip-clock" id="flip-clock">
           <div class="flip-group flip-group-minutes">
@@ -167,6 +201,7 @@
         <div class="timer-controls">
           <span class="timer-info" id="timer-info">108:00 DEFAULT</span>
           <button class="btn-icon" id="btn-settings" title="Set custom timer">⚙</button>
+          <button class="btn-icon" id="btn-mute" title="Mute audio" aria-pressed="false" style="font-size:0.85rem;">♪</button>
           <button class="btn-icon" id="btn-menu" title="Menu" style="font-size:1rem;">≡</button>
         </div>
       </div>
