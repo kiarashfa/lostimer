@@ -751,6 +751,13 @@ button, input { font-family: inherit; }
 .text-red   { color: var(--red-alarm) !important; text-shadow: 0 0 8px rgba(200,0,0,0.5) !important; }
 .text-amber { color: var(--amber) !important; }
 .text-dim   { color: var(--green-dim) !important; }
+/* small inline brand glyphs next to support links */
+.support-icon {
+  width: .85em; height: .85em;
+  fill: currentColor;
+  vertical-align: -.08em;
+  margin-right: 6px;
+}
 .blink      { animation: genericBlink 1s step-end infinite; }
 @keyframes genericBlink { 0%,100%{opacity:1;} 50%{opacity:0;} }
 @keyframes cursorBlink  { 0%,100%{opacity:1;} 50%{opacity:0;} }
