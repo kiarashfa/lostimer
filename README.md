@@ -10,6 +10,8 @@ Namaste. And good luck!
 
 This is an unofficial fan project, not affiliated with or endorsed by ABC or the creators of LOST.
 
-All references to LOST are for tribute purposes only. © 2026 Kiarash Farajzadehahary
+All references to LOST are for tribute purposes only. © 2026 Kiarash Farajzadehahary.
+
+⚖ Licensed under the [KFA Source-Available License 1.0](LICENSE).
 
 Made with ❤️ for the LOST fandom.
