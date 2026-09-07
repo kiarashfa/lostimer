@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- GitHub Pages serves this file for any missing path under /LOSTimer/,
+       while the address bar keeps the requested (possibly nested) URL.
+       <base> pins every relative asset path back to the site root so the
+       page still styles correctly at /LOSTimer/a/b/c. -->
+  <base href="/LOSTimer/">
+
+  <title>404 — Record Not Found · LOSTimer</title>
+  <meta name="description" content="This page was not found at the Swan Station.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#000000">
+
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="icon" type="image/x-icon" href="favicons/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+  <link rel="manifest" href="favicons/site.webmanifest">
+
+  <style>
+    /* Page-specific: centre the lone monitor, and let the screen grow to fit
+       its short fixed message instead of hiding the link below the fold. */
+    .center-col { justify-content: center; }
+    .monitor-screen { height: auto; min-height: 300px; }
+    .notfound-code {
+      font-family: var(--font-vt);
+      font-size: 3rem;
+      line-height: 1;
+      color: var(--amber);
+      letter-spacing: 6px;
+      text-shadow: 0 0 12px rgba(255,170,0,0.45);
+    }
+    /* A drawn rule, so it never wraps to a second line on narrow screens. */
+    .notfound-rule {
+      height: 1px;
+      background: rgba(0,119,0,0.7);
+      margin: 10px 0 4px;
+    }
+    .notfound-link {
+      color: var(--amber) !important;
+      text-decoration: none;
+    }
+    .notfound-link:hover { color: var(--green-bright) !important; }
+  </style>
+
+  <!-- Google Analytics — measurement ID lives only in analytics.js -->
+  <script async src="analytics.js"></script>
+</head>
+<body>
+
+<!-- DYNAMIC BACKGROUND — SIMPLIFIED HATCH WALLS -->
+<div id="swan-hatch-bg" aria-hidden="true">
+  <span class="hatch-fog hf1"></span>
+  <span class="hatch-fog hf2"></span>
+  <span class="hatch-fog hf3"></span>
+
+  <span class="hatch-mote hm1"></span>
+  <span class="hatch-mote hm2"></span>
+  <span class="hatch-mote hm3"></span>
+  <span class="hatch-mote hm4"></span>
+  <span class="hatch-mote hm5"></span>
+  <span class="hatch-mote hm6"></span>
+</div>
+
+<div id="app">
+
+  <!-- TOP BAR -->
+  <header class="top-bar">
+    <div class="top-bar-center">
+      <img class="dharma-logo" src="assets/Logo_TheSwan.png" alt="The Swan Station">
+      <div class="site-title-block">
+        <span class="site-title">THE SWAN STATION</span>
+        <span class="site-status">
+          <span class="dot"></span>STATUS: ONLINE&nbsp;·&nbsp; RECORD: NOT FOUND
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    <main class="center-col">
+
+      <div class="station-stack">
+        <div class="monitor-wrap">
+          <div class="monitor-outer">
+            <div class="monitor-inner-bezel">
+              <div class="monitor-screen">
+                <div class="screen-scroll">
+                  <div class="screen-content">
+<span class="screen-line notfound-code">404</span>
+<span class="screen-line text-amber">// RECORD NOT FOUND — STATION 3 //</span>
+<span class="screen-line notfound-rule" aria-hidden="true"></span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line"><span class="screen-prompt">&gt;:</span> QUERY RETURNED NO RESULTS.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line">The Island moved. So did this page.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-dim">Either it was never filed, or Radzinsky burned it. The logs are unclear on this point, as they are on most points.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-red">Whatever happened, happened. The counter did not stop for it.</span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line"><a class="notfound-link" href="./">[ RETURN TO THE STATION AND PUSH THE BUTTON ]</a></span>
+<span class="screen-line">&nbsp;</span>
+<span class="screen-line text-amber">Namaste. And good luck.<span class="blink">_</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    <span>ERROR 404</span>
+    <span>&mdash;</span>
+    <span>No ads, no sign-up · Namaste.</span>
+  </footer>
+
+</div>
+
+</body>
+</html>

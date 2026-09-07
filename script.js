@@ -1,5 +1,5 @@
 /* ============================================
-   THE SWAN STATION — script.js  v8.1
+   THE SWAN STATION — script.js  v1.0.0
    DHARMA Initiative Computing System
    ============================================ */
 (function() {
@@ -10,6 +10,8 @@
   const CORRECT_NUMS    = [4,8,15,16,23,42];
   const WARN_AT         = 4 * 60;   // seconds
   const STORAGE_KEY     = 'swan_v3';
+  // First commit year, pinned. Never derive this from git at build time.
+  const COPYRIGHT_START_YEAR = 2026;
   const MUTE_KEY        = 'swan_muted_v1';
 
   // ── STATE ──
@@ -1529,6 +1531,19 @@
     }
   }
 
+  // ── FOOTER COPYRIGHT ──
+  // Renders "© 2026" while the start year is the current year, and
+  // "© 2026-2027" once they diverge.
+  function renderCopyright() {
+    const el = document.getElementById('footer-copyright');
+    if (!el) return;
+    const now = new Date().getFullYear();
+    const span = now > COPYRIGHT_START_YEAR
+      ? COPYRIGHT_START_YEAR + '-' + now
+      : String(COPYRIGHT_START_YEAR);
+    el.textContent = '© ' + span + ' Kiarash Farajzadehahary';
+  }
+
   // ── FOOTER CLOCK ──
   function tickClock() {
     const el = document.getElementById('footer-time');
@@ -1537,6 +1552,7 @@
 
   // ── INIT ──
   function init() {
+    renderCopyright();
     loadState();
     loadMutePref();
     preloadSamples();

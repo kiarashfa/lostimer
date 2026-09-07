@@ -1,0 +1,10 @@
+# LOSTimer — https://kiarashfa.github.io/LOSTimer/
+# NOTE: this site is a GitHub Pages *project* site. Crawlers only read
+# robots.txt at the origin root (kiarashfa.github.io/robots.txt), which lives
+# in the kiarashfa.github.io repo — this file is inert until LOSTimer is
+# served from its own domain. Submit the sitemap via Google Search Console.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://kiarashfa.github.io/LOSTimer/sitemap.xml

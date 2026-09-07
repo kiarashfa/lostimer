@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LOSTimer — social image generator</title>
+<!--
+  Regenerates the two social images from the site's own assets and fonts:
+    assets/og-image.png   1200×630  (Open Graph / Twitter summary_large_image)
+    assets/og-github.png  1280×640  (GitHub repo social preview, 2:1)
+
+  Run tools/serve.cjs (or any static server that also accepts
+  POST /__save?name=…), open this page, and the canvases are written
+  straight to disk. Nothing here ships to visitors.
+-->
+<style>
+  @font-face { font-family:'Oswald'; font-weight:700; font-display:block;
+    src:url('../fonts/oswald/oswald-700-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Oswald'; font-weight:600; font-display:block;
+    src:url('../fonts/oswald/oswald-600-normal.woff2') format('woff2'); }
+  @font-face { font-family:'Share Tech Mono'; font-weight:400; font-display:block;
+    src:url('../fonts/share-tech-mono/share-tech-mono-400-normal.woff2') format('woff2'); }
+  @font-face { font-family:'VT323'; font-weight:400; font-display:block;
+    src:url('../fonts/vt323/vt323-400-normal.woff2') format('woff2'); }
+  body { background:#111; color:#0c0; font-family:'Share Tech Mono',monospace; padding:16px; }
+  canvas { display:block; margin:12px 0; max-width:100%; border:1px solid #333; }
+  pre { color:#8f8; font-size:12px; white-space:pre-wrap; }
+</style>
+</head>
+<body>
+<h3>og-image.png — 1200×630</h3><canvas id="og" width="1200" height="630"></canvas>
+<h3>og-github.png — 1280×640 (40pt safe margin)</h3><canvas id="gh" width="1280" height="640"></canvas>
+<pre id="report">waiting...</pre>
+
+<script>
+const GREEN = '#00cc00', GREEN_DIM = '#007700', AMBER = '#ffaa00';
+
+function load(src) {
+  return new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = src;
+  });
+}
+
+// Ink bounding box of an image drawn at w x h, ignoring transparent padding.
+function inkInset(img, w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  x.drawImage(img, 0, 0, w, h);
+  const d = x.getImageData(0, 0, w, h).data;
+  let minX = w, minY = h, maxX = -1, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let px = 0; px < w; px++) {
+      if (d[(y * w + px) * 4 + 3] > 10) {
+        if (px < minX) minX = px;
+        if (px > maxX) maxX = px;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  return { left: minX, top: minY, right: w - 1 - maxX, bottom: h - 1 - maxY };
+}
+
+function scanlines(ctx, w, h, alpha) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,' + alpha + ')';
+  for (let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 2);
+  ctx.restore();
+}
+
+// The hatch photo, crushed back to near-black, plus the site's bulb glow,
+// vignette, CRT scanlines and a thin green frame.
+function backdrop(ctx, bg, w, h) {
+  const r = Math.max(w / bg.width, h / bg.height);
+  const dw = bg.width * r, dh = bg.height * r;
+  ctx.drawImage(bg, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  ctx.fillStyle = 'rgba(0,0,0,0.78)';
+  ctx.fillRect(0, 0, w, h);
+
+  let g = ctx.createRadialGradient(w * 0.5, h * 0.40, h * 0.10, w * 0.5, h * 0.5, w * 0.72);
+  g.addColorStop(0, 'rgba(255,170,60,0.11)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+
+  g = ctx.createRadialGradient(w * 0.5, h * 0.5, h * 0.25, w * 0.5, h * 0.5, w * 0.68);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.75)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+
+  scanlines(ctx, w, h, 0.16);
+  ctx.strokeStyle = 'rgba(0,204,0,0.22)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, w - 2, h - 2);
+}
+
+// Draw a string and hand back its real ink box.
+function text(ctx, str, x, y, opt) {
+  ctx.save();
+  ctx.font = opt.font;
+  ctx.fillStyle = opt.color;
+  ctx.textAlign = opt.align || 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.letterSpacing = opt.spacing || '0px';
+  if (opt.glow) { ctx.shadowColor = opt.color; ctx.shadowBlur = opt.glow; }
+  const m = ctx.measureText(str);
+  ctx.fillText(str, x, y);
+  ctx.restore();
+  return {
+    left: x - m.actualBoundingBoxLeft,
+    right: x + m.actualBoundingBoxRight,
+    top: y - m.actualBoundingBoxAscent,
+    bottom: y + m.actualBoundingBoxDescent
+  };
+}
+
+function insetOf(boxes, w, h) {
+  let min = Infinity;
+  for (const b of boxes) {
+    min = Math.min(min, b.left, b.top, w - b.right, h - b.bottom);
+  }
+  return Math.round(min);
+}
+
+async function run() {
+  await Promise.all([
+    document.fonts.load('700 100px Oswald'),
+    document.fonts.load('600 30px Oswald'),
+    document.fonts.load('30px "Share Tech Mono"'),
+    document.fonts.load('60px VT323')
+  ]);
+  const bg = await load('../assets/Background.jpg');
+  const swan = await load('../assets/Logo_TheSwan.png');
+  const out = [];
+
+  // ---------- og-image.png : 1200x630, logo left / lockup right ----------
+  {
+    const c = document.getElementById('og'), ctx = c.getContext('2d');
+    const W = 1200, H = 630;
+    backdrop(ctx, bg, W, H);
+
+    const LS = 330, LX = 92, LY = (H - LS) / 2;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,204,0,0.26)';
+    ctx.shadowBlur = 26;
+    ctx.drawImage(swan, LX, LY, LS, LS);
+    ctx.restore();
+
+    const X = 470, boxes = [];
+    const ink = inkInset(swan, LS, LS);
+    boxes.push({ left: LX + ink.left, top: LY + ink.top,
+                 right: LX + LS - ink.right, bottom: LY + LS - ink.bottom });
+
+    boxes.push(text(ctx, 'LOSTimer', X, 300,
+      { font: '700 116px Oswald, sans-serif', color: GREEN, glow: 34, spacing: '1px' }));
+    boxes.push(text(ctx, 'THE SWAN STATION', X + 4, 346,
+      { font: '30px "Share Tech Mono", monospace', color: GREEN_DIM, spacing: '9px' }));
+
+    ctx.strokeStyle = 'rgba(0,119,0,0.7)';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(X + 2, 382); ctx.lineTo(W - 92, 382); ctx.stroke();
+    boxes.push({ left: X + 2, top: 380, right: W - 92, bottom: 384 });
+
+    boxes.push(text(ctx, '4  8  15  16  23  42', X, 462,
+      { font: '76px VT323, monospace', color: AMBER, glow: 26, spacing: '2px' }));
+    boxes.push(text(ctx, '108 MINUTES. PUSH THE BUTTON.', X + 4, 508,
+      { font: '24px "Share Tech Mono", monospace', color: GREEN_DIM, spacing: '4px' }));
+
+    out.push({ name: 'assets/og-image.png', canvas: c, inset: insetOf(boxes, W, H) });
+  }
+
+  // ---------- og-github.png : 1280x640, recomposed centred at 2:1 ----------
+  {
+    const c = document.getElementById('gh'), ctx = c.getContext('2d');
+    const W = 1280, H = 640;
+    const MARGIN = 64;   // 40pt is ~53px at 96dpi; 64px clears it comfortably
+    backdrop(ctx, bg, W, H);
+
+    const LS = 250, LX = (W - LS) / 2, LY = 92;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,204,0,0.26)';
+    ctx.shadowBlur = 24;
+    ctx.drawImage(swan, LX, LY, LS, LS);
+    ctx.restore();
+
+    const CX = W / 2, boxes = [];
+    const ink = inkInset(swan, LS, LS);
+    boxes.push({ left: LX + ink.left, top: LY + ink.top,
+                 right: LX + LS - ink.right, bottom: LY + LS - ink.bottom });
+
+    boxes.push(text(ctx, 'LOSTimer', CX, 430,
+      { font: '700 92px Oswald, sans-serif', color: GREEN, glow: 30, spacing: '1px', align: 'center' }));
+    boxes.push(text(ctx, 'THE SWAN STATION', CX, 472,
+      { font: '26px "Share Tech Mono", monospace', color: GREEN_DIM, spacing: '9px', align: 'center' }));
+    boxes.push(text(ctx, '4  8  15  16  23  42', CX, 546,
+      { font: '62px VT323, monospace', color: AMBER, glow: 22, spacing: '2px', align: 'center' }));
+
+    out.push({ name: 'assets/og-github.png', canvas: c, inset: insetOf(boxes, W, H), margin: MARGIN });
+  }
+
+  const lines = [];
+  for (const o of out) {
+    const blob = await new Promise(r => o.canvas.toBlob(r, 'image/png'));
+    const res = await fetch('/__save?name=' + encodeURIComponent(o.name), { method: 'POST', body: blob });
+    const saved = await res.text();
+    let line = o.name + '  ' + o.canvas.width + 'x' + o.canvas.height + '  ' + saved +
+               '  | min ink inset from edge: ' + o.inset + 'px';
+    if (o.margin) {
+      line += '  (safe margin ' + o.margin + 'px -> ' + (o.inset >= o.margin ? 'PASS' : 'FAIL') + ')';
+    }
+    lines.push(line);
+  }
+  document.getElementById('report').textContent = lines.join('\n');
+}
+
+run().catch(e => { document.getElementById('report').textContent = 'ERROR: ' + e; });
+</script>
+</body>
+</html>

@@ -1,9 +1,45 @@
 /* ============================================
-   THE SWAN STATION — style.css  v8.1
+   THE SWAN STATION — style.css  v1.0.0
    DHARMA Initiative Computing System
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&family=Oswald:wght@600;700&family=Share+Tech+Mono&family=VT323&display=swap');
+/* ── SELF-HOSTED FONTS (woff2, latin subsets; hieroglyphs subset to the 5 glyphs used) ── */
+@font-face {
+  font-family: 'Share Tech Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/share-tech-mono/share-tech-mono-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'VT323';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/vt323/vt323-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/oswald/oswald-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Oswald';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/oswald/oswald-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Noto Sans Egyptian Hieroglyphs';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/noto-sans-egyptian-hieroglyphs/noto-sans-egyptian-hieroglyphs-400-normal.woff2') format('woff2');
+  unicode-range: U+13000-1342F;
+}
 
 :root {
   --green:        #00cc00;
@@ -91,6 +127,12 @@ button, input { font-family: inherit; }
   pointer-events: none;
   background: #050605 url('assets/Background.jpg') center center / cover no-repeat;
 }
+/* Phones get a 1024px / 72 KB re-encode instead of the 2560px / 459 KB plate.
+   The layers below crush it to near-black anyway, so nothing is lost visually. */
+@media (max-width: 768px) {
+  #swan-hatch-bg { background-image: url('assets/Background-mobile.jpg'); }
+}
+
 #swan-hatch-bg::before {
   content: '';
   position: absolute;
